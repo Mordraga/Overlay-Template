@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fansly Layout — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #1f2338;
+    --border2:   #2a3350;
+    --accent:    #1a3a8b;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent; /* the backdrop is on .bg, with windows for OBS sources (js/holes.js) */
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(26,58,139,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 100% 0%, rgba(201,168,76,0.03) 0%, transparent 60%),
+      var(--black);
+    pointer-events: none;
+  }
+
+  /* ── TOP BAR ── */
+  .sigil-row {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 0 16px;
+  }
+
+  .sigil-row::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .sigil-center {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .sigil-item {
+    font-size: 0.75rem;
+    color: var(--text-mute);
+    letter-spacing: 0.6em;
+    padding: 0 0.4em;
+    animation: sigilFade 4s ease-in-out infinite;
+  }
+  .sigil-item:nth-child(even) { animation-delay: 2s; }
+
+  @keyframes sigilFade {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.7; }
+  }
+
+  .branding-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+
+  .branding-bar-name {
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    white-space: nowrap;
+  }
+
+  .branding-bar-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.45rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    white-space: nowrap;
+    font-variant-numeric: lining-nums; /* Cormorant's oldstyle 0 looks like an o in handles */
+  }
+
+  .bar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex-shrink: 0;
+    margin: 0 28px;
+  }
+
+  .bar-info-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    white-space: nowrap;
+  }
+
+  .bar-info-value {
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--gold-pale);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ── MAIN AREA: same grid as the Twitch layout ── */
+  .main {
+    position: absolute;
+    top: 48px;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .left-col {
+    width: 1440px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .right-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* every framed box: thin border, gradient top, gold corners */
+  .box {
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  .box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .box .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+    z-index: 1;
+  }
+  .box .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .box .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .box .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .box .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  /* capture: exactly 16:9, 75% of 1920x1080 */
+  .cap-zone { width: 1440px; height: 810px; flex-shrink: 0; }
+
+  /* camera: 16:9 webcam frame, transparent */
+  .cam-zone { height: 245px; flex-shrink: 0; }
+
+  /* model spot: transparent, same size as on Twitch */
+  .model-zone { height: 280px; flex-shrink: 0; }
+
+  /* ── BRAND PANEL (static — no live chat on Fansly) ── */
+  .brand-panel {
+    flex: 1;
+    min-height: 0;
+    background: rgba(8,8,8,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .brand-sigil-line {
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.6em;
+    animation: sigilPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes sigilPulse {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 0.75; }
+  }
+
+  .brand-name {
+    font-size: 1.9rem;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(201,168,76,0.35);
+  }
+
+  .brand-pronouns {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+
+  .brand-divider {
+    width: 160px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+  }
+
+  .brand-tagline {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+
+  .brand-handle {
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    color: var(--gold-dim);
+    animation: handleGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes handleGlow {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+  }
+
+  /* ── BOTTOM STRIP: rotating cards + tiers ── */
+  .bottom-strip {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+  }
+
+  /* live counter — text and number set from the panel's Fansly Counter section */
+  .counter-box {
+    width: 420px;
+    flex-shrink: 0;
+    background: rgba(8,8,8,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 20px 26px;
+    text-align: center;
+  }
+
+  .counter-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .counter-label .sig { color: var(--accent); }
+
+  .counter-value {
+    /* Cormorant's lining 0 is clearly a zero; Cinzel's reads as the letter O */
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 76px;
+    line-height: 1.1;
+    color: var(--gold-pale);
+    text-shadow: 0 0 20px rgba(201,168,76,0.3);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .counter-value.bump { animation: counterBump 0.5s ease-out; }
+
+  @keyframes counterBump {
+    0%   { transform: scale(1.25); color: #fff; text-shadow: 0 0 26px rgba(232,212,154,0.9); }
+    100% { transform: scale(1); }
+  }
+
+  .counter-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 100%;
+  }
+
+  .tiers {
+    flex: 1;
+    min-width: 0;
+    background: rgba(8,8,8,0.5);
+    display: flex;
+    align-items: stretch;
+    padding: 24px 28px;
+    gap: 28px;
+  }
+
+  .tier {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .tier-divider {
+    width: 1px;
+    background: linear-gradient(180deg, transparent, var(--border2), transparent);
+  }
+
+  .tier-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  .tier-label .sig { color: var(--accent); }
+
+  .tier-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 38px;
+    line-height: 1.2;
+    color: var(--text);
+    margin: 4px 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tier-name.small { font-size: 30px; font-style: normal; letter-spacing: 0.02em; font-variant-numeric: lining-nums; }
+
+  .tier-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  /* ── FAMILIAR (random wanderer from js/crypt-effects.js) ── */
+  .familiar {
+    position: absolute;
+    top: 820px;
+    left: 1380px;
+    z-index: 5;
+    pointer-events: none;
+    animation: familiarWalk 18s linear forwards;
+  }
+
+  @keyframes familiarWalk {
+    0%   { transform: translateX(0);       opacity: 0; filter: blur(4px); }
+    5%   { opacity: 1; filter: none; }
+    93%  { opacity: 1; filter: none; }
+    100% { transform: translateX(-1320px); opacity: 0; filter: blur(4px); }
+  }
+
+  .familiar-body { animation: waddle 0.45s ease-in-out infinite alternate; }
+
+  @keyframes waddle {
+    from { transform: translateY(0) rotate(-1.5deg); }
+    to   { transform: translateY(-2px) rotate(1.5deg); }
+  }
+
+  .familiar .leg { transform-box: fill-box; transform-origin: top center; animation: step 0.45s ease-in-out infinite alternate; }
+  .familiar .leg-b { animation-direction: alternate-reverse; }
+
+  @keyframes step {
+    from { transform: rotate(-18deg); }
+    to   { transform: rotate(18deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- TOP BAR -->
+<div class="sigil-row">
+  <div class="branding-bar">
+    <span class="branding-bar-name">YOUR NAME</span>
+    <span class="branding-bar-sub">fansly.com/yourname</span>
+  </div>
+  <div class="bar-info">
+    <span class="bar-info-label">Local Time</span>
+    <span class="bar-info-value" id="local-time">—</span>
+  </div>
+  <div class="sigil-center">
+    <span class="sigil-item">⸸</span><span class="sigil-item">✦</span><span class="sigil-item">⸸</span><span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span><span class="sigil-item">✦</span><span class="sigil-item">⸸</span><span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span><span class="sigil-item">✦</span><span class="sigil-item">⸸</span><span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span><span class="sigil-item">✦</span><span class="sigil-item">⸸</span><span class="sigil-item">✦</span>
+  </div>
+  <div class="branding-bar" style="align-items:flex-start;">
+    <span class="branding-bar-name">she / they</span>
+    <span class="branding-bar-sub">⸸ The Crypt ⸸</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="left-col">
+    <!-- CAPTURE (x 16, y 48, 1440 × 810) -->
+    <div class="box cap-zone" data-hole>
+      <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    </div>
+
+    <div class="bottom-strip">
+      <!-- COUNTER (text and number set in the panel's Fansly Counter section) -->
+      <div class="box counter-box">
+        <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+        <div class="counter-label"><span class="sig">⸸</span> <span id="counter-label"></span> <span class="sig">⸸</span></div>
+        <div class="counter-value" id="counter-value">0</div>
+        <div class="counter-sub" id="counter-sub"></div>
+      </div>
+
+      <!-- TIERS -->
+      <div class="box tiers">
+        <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+
+        <div class="tier">
+          <div class="tier-label"><span class="sig">⸸</span> Spicy Tier 1</div>
+          <div class="tier-name">Tier One</div>
+          <div class="tier-sub">the first rite</div>
+        </div>
+        <div class="tier-divider"></div>
+        <div class="tier">
+          <div class="tier-label"><span class="sig">⸸</span> Spicy Tier 2</div>
+          <div class="tier-name">Tier Two</div>
+          <div class="tier-sub">for those who go deeper</div>
+        </div>
+        <div class="tier-divider"></div>
+        <div class="tier">
+          <div class="tier-label"><span class="sig">⸸</span> The Public Crypt</div>
+          <div class="tier-name small">twitch.tv/yourname</div>
+          <div class="tier-sub">streams, chaos, and Mai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <!-- CAMERA (x 1468, y 48, 436 × 245) — webcam source goes over this -->
+    <div class="box cam-zone" data-hole>
+      <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    </div>
+
+    <!-- BRAND PANEL -->
+    <div class="box brand-panel">
+      <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+      <span class="brand-sigil-line">⸸ ✦ ⸸</span>
+      <span class="brand-name">YOUR NAME</span>
+      <span class="brand-pronouns">she / they</span>
+      <div class="brand-divider"></div>
+      <span class="brand-tagline">Your · Tagline · Here</span>
+      <span class="brand-handle">fansly.com/yourname</span>
+    </div>
+
+    <!-- MODEL SPOT (x 1468, y 784, 436 × 280) — model source goes over this -->
+    <div class="box model-zone" data-hole>
+      <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- a familiar still wanders by now and then -->
+<script src="js/crypt-effects.js"></script>
+
+<script>
+/* ── COUNTER: polls the server so panel clicks show up within a second ── */
+(function () {
+  var POLL_MS = 1000;
+  var label = document.getElementById('counter-label');
+  var value = document.getElementById('counter-value');
+  var sub = document.getElementById('counter-sub');
+  var last = null;
+
+  function load() {
+    fetch('/api/state').then(function (res) { return res.json(); }).then(function (state) {
+      var c = state.fanslyCounter || {};
+      label.textContent = c.label || '';
+      sub.textContent = c.sub || '';
+      sub.style.display = c.sub ? '' : 'none';
+      var v = String(Number(c.value) || 0);
+      if (v !== last) {
+        value.textContent = v;
+        if (last !== null) {
+          value.classList.remove('bump');
+          void value.offsetWidth; // restart the animation
+          value.classList.add('bump');
+        }
+        last = v;
+      }
+    }).catch(function () {});
+  }
+
+  load();
+  setInterval(load, POLL_MS);
+})();
+
+/* ── TOP BAR CLOCK ── */
+(function () {
+  var clock = document.getElementById('local-time');
+  function update() {
+    clock.textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+  }
+  update();
+  setInterval(update, 1000);
+})();
+</script>
+
+<!-- transparent windows for OBS sources -->
+<script src="js/holes.js"></script>
+
+</body>
+</html>

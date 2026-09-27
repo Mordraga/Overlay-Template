@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collab — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+<style>
+  .people { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
+  .person {
+    display: grid;
+    grid-template-columns: 26px 1fr 1fr 1.3fr auto auto;
+    gap: 8px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+  }
+  .person.me { border-color: var(--gold-dim); }
+  .person .num { color: var(--text-mute); font-family: 'Cinzel', serif; font-size: 0.75rem; }
+  .person .moves { display: flex; gap: 4px; }
+  @media (max-width: 600px) {
+    .person { grid-template-columns: 22px 1fr auto; }
+    .person .f-handle, .person .f-fugi { grid-column: 2 / 3; }
+  }
+  .tips li { margin: 6px 0 6px 20px; color: var(--text); }
+  .tips b { color: var(--gold); font-weight: normal; }
+  .tips code { color: var(--gold-pale); font-family: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">collab name plates for layout.html?collab</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section>
+    <h2>⸸ Collab Cast</h2>
+    <p class="hint">
+      Up to 6, including you. Plates show left to right in this order; empty rows are skipped.
+      Mark yourself with <b>me</b> for the ⸸ plate. Changes show on stream within a couple of seconds after Save.
+      <br>Give someone a <b>Fugi link</b> (their <code>reactive.fugi.tech/basic/…</code> browser source) and their Discord
+      avatar appears right above their plate. Leave it empty for a VTube Studio model instead.
+    </p>
+    <div class="people" id="people"></div>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="guides"> Show alignment guides on stream (while arranging models in VTube Studio)</label>
+    </div>
+
+    <div class="row">
+      <button class="primary" id="save">Save</button>
+      <button id="clear-guests">Clear guests</button>
+      <span class="status" id="status"></span>
+    </div>
+  </section>
+
+  <section class="tips">
+    <h2>✦ VTube Studio Setup</h2>
+    <ul>
+      <li><b>OBS:</b> browser source <code>http://localhost:8765/layout.html?collab</code>. Source order, top to bottom:
+        <b>VTube Studio capture</b> → <b>this overlay</b> → <b>game/screen capture</b> (1280×720 at x 96, y 48).</li>
+      <li><b>VNet:</b> start VTube Studio <b>through Steam</b>; everyone needs the VNet DLC (a free trial runs 10-minute sessions) and must be your Steam friend. Up to 6 per collab.</li>
+      <li><b>You arrange everyone:</b> in VNet's session settings, set each guest to <b>"You control position"</b> so their model moves like an item on your screen. Their own arrangement doesn't affect your stream.</li>
+      <li><b>Fugi guests</b> need nothing in OBS: paste their Fugi link on their row and their avatar lands above their plate.</li>
+      <li><b>Line them up:</b> turn on the guides above, then drag each model so it stands centered over its plate. Turn the guides off when you're done.</li>
+      <li><b>Transparency:</b> in OBS, capture VTube Studio with a <b>Game Capture</b> that has <b>Allow Transparency</b> checked (or use VTS's Spout2 output with the OBS Spout2 plugin), with VTS's background set to transparent.</li>
+      <li><b>Lag:</b> guest movement arrives 100–300 ms late; raise a guest's <b>smoothing</b> in VNet if their model stutters.</li>
+    </ul>
+  </section>
+
+</div>
+
+<template id="person-template">
+  <div class="person">
+    <span class="num"></span>
+    <input type="text" class="f-name" placeholder="Name">
+    <input type="text" class="f-handle" placeholder="Handle (optional)">
+    <input type="text" class="f-fugi" placeholder="Fugi link (optional)">
+    <label class="check"><input type="radio" name="me" class="f-me"> me</label>
+    <span class="moves">
+      <button class="small" data-act="up" title="Move left">↑</button>
+      <button class="small" data-act="down" title="Move right">↓</button>
+    </span>
+  </div>
+</template>
+
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post;
+  var SLOTS = 6;
+  var FUGI_LINK = /^https:\/\/([\w-]+\.)*fugi\.tech\//;
+  var list = $('people');
+
+  function dirty() { setStatus('status', 'Unsaved changes', 'dirty'); }
+
+  function renumber() {
+    Array.prototype.forEach.call(list.children, function (row, i) {
+      row.querySelector('.num').textContent = i + 1;
+      row.classList.toggle('me', row.querySelector('.f-me').checked);
+    });
+  }
+
+  function build(people) {
+    list.innerHTML = '';
+    for (var i = 0; i < SLOTS; i++) {
+      var p = people[i] || {};
+      var row = $('person-template').content.firstElementChild.cloneNode(true);
+      row.querySelector('.f-name').value = p.name || '';
+      row.querySelector('.f-handle').value = p.handle || '';
+      row.querySelector('.f-fugi').value = p.fugi || '';
+      row.querySelector('.f-me').checked = !!p.host;
+      list.appendChild(row);
+    }
+    renumber();
+  }
+
+  function read() {
+    return Array.prototype.map.call(list.children, function (row) {
+      return {
+        name: row.querySelector('.f-name').value.trim(),
+        handle: row.querySelector('.f-handle').value.trim(),
+        fugi: row.querySelector('.f-fugi').value.trim(),
+        host: row.querySelector('.f-me').checked
+      };
+    }).filter(function (p) { return p.name; });
+  }
+
+  list.addEventListener('input', dirty);
+  list.addEventListener('change', function () { renumber(); dirty(); });
+  list.addEventListener('click', function (e) {
+    var act = e.target.dataset.act;
+    if (!act) return;
+    var row = e.target.closest('.person');
+    if (act === 'up' && row.previousElementSibling) list.insertBefore(row, row.previousElementSibling);
+    if (act === 'down' && row.nextElementSibling) list.insertBefore(row.nextElementSibling, row);
+    renumber();
+    dirty();
+  });
+
+  function save(extra) {
+    var collab = Object.assign({ people: read(), guides: $('guides').checked }, extra || {});
+    var bad = collab.people.filter(function (p) { return p.fugi && !FUGI_LINK.test(p.fugi); });
+    if (bad.length) {
+      setStatus('status', 'Not a fugi.tech link for ' + bad.map(function (p) { return p.name; }).join(', ') + '.', 'error');
+      return Promise.resolve();
+    }
+    return post({ collab: collab })
+      .then(function () { setStatus('status', 'Saved: ' + collab.people.length + ' on the plates.'); })
+      .catch(function (err) { setStatus('status', 'Could not save: ' + err.message, 'error'); });
+  }
+
+  $('save').onclick = function () { save(); };
+
+  // the guides switch applies right away, so you can flip it while arranging in VTube Studio
+  $('guides').addEventListener('change', function () { save(); });
+
+  $('clear-guests').onclick = function () {
+    if (!confirm('Clear everyone except you?')) return;
+    var me = read().filter(function (p) { return p.host; });
+    build(me);
+    save();
+  };
+
+  P.load().then(function (s) {
+    var collab = s.collab || {};
+    build(collab.people && collab.people.length ? collab.people
+      : [{ name: 'Your Name', handle: 'twitch.tv/yourname', host: true }]);
+    $('guides').checked = !!collab.guides;
+  }).catch(function () {
+    setStatus('status', 'Could not reach the server. Is it running?', 'error');
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if ($('status').classList.contains('dirty')) { e.preventDefault(); e.returnValue = ''; }
+  });
+})();
+</script>
+</body>
+</html>

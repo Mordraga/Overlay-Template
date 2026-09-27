@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Layout — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #2a1f2a;
+    --border2:   #3a2a3a;
+    --accent:    #8b1a1a;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent; /* the backdrop is on .bg, with windows for OBS sources (js/holes.js) */
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(139,26,26,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 100% 0%, rgba(201,168,76,0.03) 0%, transparent 60%),
+      var(--black);
+    pointer-events: none;
+  }
+
+  /* ── SIGIL ROW ── */
+  .sigil-row {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 0 16px;
+  }
+
+  .sigil-center {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .branding-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+
+  .branding-bar-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    white-space: nowrap;
+  }
+
+  .branding-bar-sub {
+    font-variant-numeric: lining-nums; /* Cormorant's oldstyle 0 looks like an o in handles */
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.45rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    white-space: nowrap;
+  }
+
+  /* gradient bar on top of sigil row */
+  .sigil-row::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .sigil-item {
+    font-size: 0.75rem;
+    color: var(--text-mute);
+    letter-spacing: 0.6em;
+    padding: 0 0.4em;
+    animation: sigilFade 4s ease-in-out infinite;
+  }
+
+  .sigil-item:nth-child(odd)  { animation-delay: 0s; }
+  .sigil-item:nth-child(even) { animation-delay: 2s; }
+
+  @keyframes sigilFade {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.7; }
+  }
+
+  /* ── MAIN AREA ── */
+  .main {
+    position: absolute;
+    top: 48px; /* sigil row + gap */
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  /* ── LEFT COLUMN: capture on top, bottom strip below ── */
+  .left-col {
+    width: 1440px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── CAPTURE ZONE ── */
+  .cap-zone {
+    /* exactly 16:9 — 75% of 1920x1080, so captures scale cleanly */
+    width: 1440px;
+    height: 810px;
+    flex-shrink: 0;
+    position: relative;
+    border: 1px solid var(--border);
+    background: transparent;
+  }
+
+  /* gradient bar top */
+  .cap-zone::before,
+  .strip-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  /* corner brackets */
+  .cap-zone .corner,
+  .strip-box .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+  }
+  .cap-zone .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .strip-box .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .cap-zone .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .strip-box .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .cap-zone .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .strip-box .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .cap-zone .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .strip-box .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  /* ── BOTTOM STRIP: alerts + stats ── */
+  .bottom-strip {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .strip-box {
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  /* rotating quotes / links / reminders */
+  .rotator {
+    width: 420px;
+    flex-shrink: 0;
+    background: rgba(8,8,8,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px 30px;
+    text-align: center;
+  }
+
+  .rot-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.8s ease;
+  }
+
+  .rot-card.hidden { opacity: 0; }
+
+  .rot-kicker {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  .rot-kicker .sig { color: var(--accent); }
+
+  .rot-main {
+    font-size: 24px;
+    letter-spacing: 0.06em;
+    color: var(--gold-pale);
+    line-height: 1.3;
+  }
+
+  .rot-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  /* quotes read as italic text instead of a headline */
+  .rot-card.quote .rot-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 23px;
+    letter-spacing: 0;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .rot-card.quote.long .rot-main { font-size: 20px; }
+
+  /* lore: excerpts from the F.E.T.B. file */
+  .rot-card.file .rot-kicker {
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(139,26,26,0.5);
+  }
+
+  .rot-card.file .rot-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 23px;
+    letter-spacing: 0;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .rot-card.file.long .rot-main { font-size: 20px; }
+
+  .rot-card.file .rot-sub {
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  /* Cinzel has no lowercase — case-sensitive links need a font that does */
+  .rot-card.exact .rot-main {
+    font-variant-numeric: lining-nums; /* Cormorant's oldstyle 0 looks like an o in handles */
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 30px;
+    letter-spacing: 0.02em;
+  }
+
+  .rot-card.quote .rot-sub {
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  /* latest follower / sub / bits + Twitch goal bars */
+  .stats-slot {
+    flex: 1;
+    min-width: 0;
+    background: rgba(8,8,8,0.5);
+    display: flex;
+    align-items: stretch;
+    padding: 24px 28px;
+    gap: 28px;
+  }
+
+  .stat-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stat-divider {
+    width: 1px;
+    background: linear-gradient(180deg, transparent, var(--border2), transparent);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  .stat-label .sig { color: var(--accent); }
+
+  .stat-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 34px;
+    line-height: 1.25;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 4px 0 14px;
+  }
+
+  .stat-name.pop { animation: namePop 0.8s ease-out; }
+
+  @keyframes namePop {
+    0%   { color: var(--gold-pale); text-shadow: 0 0 16px rgba(201,168,76,0.8); }
+    100% { color: var(--text); text-shadow: none; }
+  }
+
+  .goal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .goal-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .goal-count {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--gold-dim);
+    white-space: nowrap;
+  }
+
+  .goal-bar {
+    height: 10px;
+    border: 1px solid var(--border2);
+    background: rgba(8,8,8,0.6);
+    overflow: hidden;
+  }
+
+  .goal-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    box-shadow: 0 0 8px rgba(201,168,76,0.4);
+    transition: width 1s ease-out;
+  }
+
+  .goal-fill.done {
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold-pale));
+    animation: doneGlow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes doneGlow {
+    0%, 100% { box-shadow: 0 0 6px rgba(232,212,154,0.4); }
+    50%      { box-shadow: 0 0 16px rgba(232,212,154,0.9); }
+  }
+
+  /* no active Twitch goal of this type */
+  .stat-col.no-goal .goal-bar,
+  .stat-col.no-goal .goal-count { opacity: 0.3; }
+
+  /* ── RIGHT COLUMN ── */
+  .right-panels {
+    flex: 1; /* takes the rest of the width (436px) */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── CHAT PANEL ── */
+  .chat-section {
+    flex: 1;
+    min-height: 0; /* lets chat shrink instead of pushing the model spot off-screen */
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    background: rgba(8,8,8,0.5);
+    position: relative;
+  }
+
+  /* ── MODEL SPOT ── */
+  .draga-sit {
+    height: 280px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: transparent;
+    position: relative;
+  }
+
+  .draga-sit::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+
+  /* arched top via clip-path */
+  .chat-arch {
+    width: 100%;
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .chat-arch::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .chat-arch-sigil {
+    font-size: 0.5rem;
+    color: var(--accent);
+    letter-spacing: 0.4em;
+  }
+
+  .chat-arch-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.4rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  /* corner brackets on chat panel */
+  .right-panels .corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.6;
+    z-index: 1;
+  }
+  .right-panels .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .right-panels .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .right-panels .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .right-panels .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  /* left accent bar */
+  .chat-section::before {
+    content: '';
+    position: absolute;
+    top: 64px; bottom: 0; left: -1px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .chat-widget {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #chat-messages {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  #chat-messages::-webkit-scrollbar { display: none; }
+
+  .chat-message {
+    animation: msgIn 0.4s ease-out;
+  }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .chat-msg-header {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+
+  .chat-msg-badge {
+    font-size: 1rem;
+    color: var(--gold);
+  }
+
+  .chat-msg-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+  }
+
+  .chat-msg-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--text);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .chat-msg-emote {
+    height: 1.4em;
+    vertical-align: middle;
+    margin: 0 1px;
+  }
+
+  /* bottom accent bar */
+  .chat-footer {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  /* ── BRANDING ── */
+  .branding {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    pointer-events: none;
+  }
+
+  .branding-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .branding-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.5rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    opacity: 0.5;
+    display: block;
+  }
+
+  /* ── MAI: mood face in the chat header (drawn by mai-face.js) ── */
+  .mai-slot {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #mai-face { width: 58px; height: 58px; }
+
+  .mai-name {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #a5b4fc; /* Mai's indigo */
+  }
+
+  /* ── MAI IN CHAT: indigo accent + a frozen snapshot of her mood ── */
+  .chat-message.mai-msg {
+    border-left: 2px solid #818cf8;
+    padding-left: 10px;
+    background: linear-gradient(90deg, rgba(129,140,248,0.08), transparent 70%);
+  }
+
+  .mai-msg .chat-msg-header { align-items: center; }
+  .mai-msg .chat-msg-name { color: #a5b4fc !important; }
+
+  .chat-msg-mai-face {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+  }
+
+  /* ── FIRST-TIME CHATTER ── */
+  .first-soul-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--gold);
+    margin-bottom: 2px;
+  }
+
+  .chat-message.first-soul .chat-msg-text { animation: soulGlow 4s ease-out; }
+
+  @keyframes soulGlow {
+    0%   { text-shadow: 0 0 14px rgba(201,168,76,0.8); }
+    100% { text-shadow: none; }
+  }
+
+  /* ── TOP BAR: local time + uptime ── */
+  .bar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex-shrink: 0;
+    margin: 0 28px;
+  }
+
+  .bar-info-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    white-space: nowrap;
+  }
+
+  .bar-info-value {
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--gold-pale);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .bar-info-value.offline { color: var(--text-mute); }
+  .bar-info-value.glitch { color: var(--accent); text-shadow: 0 0 8px rgba(139,26,26,0.8); }
+
+  /* ── NUMBER WATCHING: goal lands on a multiple of 4 or 5 ── */
+  .stat-col.align .goal-count { color: var(--gold-pale); text-shadow: 0 0 10px rgba(232,212,154,0.7); }
+  .stat-col.align .goal-count::before {
+    content: 'the numbers align ⸸ ';
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    font-size: 14px;
+  }
+  .stat-col.align .goal-fill { animation: doneGlow 1.2s ease-in-out infinite; }
+
+  /* ── CONTAINMENT BREACH (raids take over the rotator) ── */
+  .rotator.alarm {
+    border-color: var(--accent);
+    animation: alarmPulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes alarmPulse {
+    0%, 100% { box-shadow: inset 0 0 18px rgba(139,26,26,0.25); }
+    50%      { box-shadow: inset 0 0 40px rgba(139,26,26,0.55); }
+  }
+
+  .rot-card.breach .rot-kicker {
+    color: #c43a3a;
+    text-shadow: 0 0 10px rgba(196,58,58,0.6);
+  }
+
+  .rot-card.breach .rot-main {
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  /* ── TECHNICAL DISTORTION (god names in chat) — jitter + red shift, no bright flashes ── */
+  body.distort .main,
+  body.distort .sigil-row {
+    animation: distortJitter 1.4s steps(1) both;
+  }
+
+  @keyframes distortJitter {
+    0%   { transform: translate(0, 0);   filter: none; }
+    8%   { transform: translate(-3px, 1px); filter: hue-rotate(-25deg) saturate(1.8) drop-shadow(3px 0 rgba(139,26,26,0.8)); }
+    16%  { transform: translate(2px, -1px); filter: drop-shadow(-3px 0 rgba(70,140,170,0.35)); }
+    24%  { transform: translate(0, 0);   filter: none; }
+    40%  { transform: translate(4px, 0);  filter: hue-rotate(-25deg) saturate(1.8) drop-shadow(-2px 0 rgba(139,26,26,0.8)); }
+    48%  { transform: translate(-1px, 2px); filter: none; }
+    64%  { transform: translate(-2px, 0); filter: drop-shadow(2px 0 rgba(139,26,26,0.6)); }
+    72%  { transform: translate(0, 0);   filter: none; }
+    100% { transform: translate(0, 0);   filter: none; }
+  }
+
+  /* faint scanlines over everything while distorted */
+  body::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(139,26,26,0.07) 0 1px, transparent 1px 4px);
+    opacity: 0;
+  }
+  body.distort::after { animation: scanFlicker 1.4s steps(1) both; }
+
+  @keyframes scanFlicker {
+    0%, 24%, 48%, 72%, 100% { opacity: 0; }
+    8%, 40%, 64%            { opacity: 1; }
+  }
+
+  /* the chat message that caused it */
+  .chat-message.glitched .chat-msg-text { animation: msgGlitch 1.4s steps(1); }
+
+  @keyframes msgGlitch {
+    0%, 30%, 60%, 100% { text-shadow: none; transform: none; }
+    10%, 45%           { text-shadow: 2px 0 rgba(139,26,26,0.9), -2px 0 rgba(70,140,170,0.5); transform: translateX(2px); }
+  }
+
+  /* ── FAMILIAR MANIFESTATION: an axolotl walks along the top of the bottom strip ── */
+  .familiar {
+    position: absolute;
+    top: 820px;   /* feet on the bottom strip's top edge (y = 870) */
+    left: 1380px;
+    z-index: 5;
+    pointer-events: none;
+    animation: familiarWalk 18s linear forwards;
+  }
+
+  @keyframes familiarWalk {
+    0%   { transform: translateX(0);       opacity: 0; filter: blur(4px); }
+    5%   { opacity: 1; filter: none; }
+    93%  { opacity: 1; filter: none; }
+    100% { transform: translateX(-1320px); opacity: 0; filter: blur(4px); }
+  }
+
+  .familiar-body { animation: waddle 0.45s ease-in-out infinite alternate; }
+
+  @keyframes waddle {
+    from { transform: translateY(0) rotate(-1.5deg); }
+    to   { transform: translateY(-2px) rotate(1.5deg); }
+  }
+
+  .familiar .leg { transform-box: fill-box; transform-origin: top center; animation: step 0.45s ease-in-out infinite alternate; }
+  .familiar .leg-b { animation-direction: alternate-reverse; }
+
+  @keyframes step {
+    from { transform: rotate(-18deg); }
+    to   { transform: rotate(18deg); }
+  }
+
+  .familiar-tag {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 2px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold);
+    text-shadow: 0 0 8px rgba(8,8,8,0.9);
+    white-space: nowrap;
+  }
+
+  /* ── COLLAB MODE (layout.html?collab): up to 6 VTubers via VTube Studio VNet ──
+   * All models come from one VTube Studio capture placed above this overlay; they stand on the
+   * name plates. The capture shrinks to make room, chat runs full height, stats/cards/model spot hide. */
+  body.collab .cap-zone {
+    width: 1280px;
+    height: 720px;
+    align-self: center;
+  }
+
+  body.collab .bottom-strip,
+  body.collab .draga-sit { display: none; }
+
+  .collab-plates,
+  .collab-guides { display: none; }
+
+  /* one column per person: their Fugi avatar (if they have a link) above their plate.
+     Columns without Fugi stay open for a VTube Studio model. */
+  body.collab .collab-plates {
+    position: absolute;
+    left: 16px;
+    top: 780px;
+    width: 1440px;
+    height: 284px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 10px;
+  }
+
+  .slot {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .slot-fugi {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .slot .plate { height: 56px; flex-shrink: 0; }
+
+  .plate {
+    position: relative;
+    border: 1px solid var(--border);
+    background: rgba(8,8,8,0.72);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-width: 0;
+    padding: 0 10px;
+  }
+
+  .plate::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 14px; right: 14px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .plate-name {
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .plate-handle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-variant-numeric: lining-nums;
+  }
+
+  /* the host's plate */
+  .plate.host { border-color: var(--gold-dim); }
+  .plate.host .plate-name { color: var(--gold); text-shadow: 0 0 10px rgba(201,168,76,0.35); }
+  .plate.host .plate-name::before,
+  .plate.host .plate-name::after { content: ' ⸸ '; color: var(--accent); }
+
+  /* alignment guides while arranging models in VTube Studio (turned on from the panel) */
+  body.collab.guides .collab-guides {
+    position: absolute;
+    left: 16px;
+    top: 48px;
+    width: 1440px;
+    height: 1016px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 10px;
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  .guide {
+    position: relative;
+    border: 1px dashed rgba(129,140,248,0.55);
+  }
+
+  .guide::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 50%;
+    border-left: 1px dashed rgba(201,168,76,0.5);
+  }
+
+  .guide span {
+    position: absolute;
+    top: 8px; left: 0; right: 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: #a5b4fc;
+  }
+</style>
+</head>
+<body>
+<script>
+  // layout.html?collab switches to the collab layout
+  if (/[?&]collab\b/.test(location.search)) document.body.classList.add('collab');
+</script>
+
+<div class="bg"></div>
+
+<!-- SIGIL ROW -->
+<div class="sigil-row">
+  <div class="branding-bar">
+    <span class="branding-bar-name">YOUR NAME</span>
+    <span class="branding-bar-sub">twitch.tv/yourname</span>
+  </div>
+  <div class="bar-info">
+    <span class="bar-info-label">Local Time</span>
+    <span class="bar-info-value" id="local-time">—</span>
+  </div>
+  <div class="sigil-center">
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+  </div>
+  <div class="bar-info" style="align-items:flex-end;">
+    <span class="bar-info-label">Cryptlings Observing</span>
+    <span class="bar-info-value offline" id="viewers">—</span>
+  </div>
+  <div class="bar-info" style="align-items:flex-end;">
+    <span class="bar-info-label">In the Crypt</span>
+    <span class="bar-info-value offline" id="uptime">offline</span>
+  </div>
+  <div class="branding-bar" style="align-items:flex-start;">
+    <span class="branding-bar-name">she / they</span>
+    <span class="branding-bar-sub">⸸ The Crypt ⸸</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="left-col">
+
+    <!-- CAPTURE ZONE -->
+    <div class="cap-zone" data-hole>
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+    </div>
+
+    <!-- BOTTOM STRIP -->
+    <div class="bottom-strip">
+      <!-- ROTATOR: quotes / links / reminders -->
+      <div class="strip-box rotator">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+        <div class="rot-card hidden" id="rot-card">
+          <div class="rot-kicker" id="rot-kicker"></div>
+          <div class="rot-main" id="rot-main"></div>
+          <div class="rot-sub" id="rot-sub"></div>
+        </div>
+      </div>
+
+      <!-- STATS: latest follower / sub / bits + Twitch goals -->
+      <div class="strip-box stats-slot">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <div class="stat-col no-goal" id="follower-col">
+          <div class="stat-label"><span class="sig">⸸</span> Latest Follower</div>
+          <div class="stat-name" id="follower-name">—</div>
+          <div class="goal-head">
+            <span class="goal-label" id="follower-goal-label">Follower Goal</span>
+            <span class="goal-count" id="follower-count">—</span>
+          </div>
+          <div class="goal-bar"><div class="goal-fill" id="follower-fill"></div></div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col no-goal" id="sub-col">
+          <div class="stat-label"><span class="sig">⸸</span> Latest Sub</div>
+          <div class="stat-name" id="sub-name">—</div>
+          <div class="goal-head">
+            <span class="goal-label" id="sub-goal-label">Sub Goal</span>
+            <span class="goal-count" id="sub-count">—</span>
+          </div>
+          <div class="goal-bar"><div class="goal-fill" id="sub-fill"></div></div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col no-goal" id="bits-col">
+          <div class="stat-label"><span class="sig">⸸</span> Latest Bits</div>
+          <div class="stat-name" id="bits-name">—</div>
+          <div class="goal-head">
+            <span class="goal-label" id="bits-goal-label">Bits Goal</span>
+            <span class="goal-count" id="bits-count">—</span>
+          </div>
+          <div class="goal-bar"><div class="goal-fill" id="bits-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: chat on top, model spot below -->
+  <div class="right-panels">
+
+    <!-- CHAT PANEL -->
+    <div class="chat-section">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+
+      <div class="chat-arch">
+        <span class="chat-arch-sigil">⸸ ✦ ⸸</span>
+        <span class="chat-arch-label">The Crypt</span>
+        <div class="mai-slot">
+          <div id="mai-face"></div>
+          <span class="mai-name">Mai</span>
+        </div>
+      </div>
+
+      <div class="chat-widget">
+        <div id="chat-messages"></div>
+      </div>
+
+      <div class="chat-footer"></div>
+    </div>
+
+    <!-- MODEL SPOT (transparent — layer the model source over this in OBS) -->
+    <div class="draga-sit" data-hole>
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- COLLAB: name plates and alignment guides (collab mode only) -->
+<div class="collab-guides" id="collab-guides"></div>
+<div class="collab-plates" id="collab-plates"></div>
+
+<!-- Twitch token lives here (config/ is kept out of git) — keep this file private -->
+<script src="config/twitch-config.js"></script>
+
+<!-- rotating cards: edited in the control panel (panel.html) -->
+<script src="js/rotator.js"></script>
+
+<!-- familiar, distortion, containment breach -->
+<script src="js/crypt-effects.js"></script>
+
+<!-- Mai's mood face -->
+<script src="js/mai-face.js"></script>
+
+<script>
+/* ── STATS: latest follower / sub / bits + Twitch Creator Goals ── */
+(function () {
+  var cfg = window.TWITCH_CONFIG || {};
+  var POLL_MS = 30000;
+  var STORE_KEY = 'crypt-latest';
+  var KINDS = ['follower', 'sub', 'bits'];
+
+  // Twitch goal type -> which column it shows in
+  var GOAL_KIND = {
+    follower: 'follower',
+    subscription: 'sub',
+    subscription_count: 'sub',
+    new_subscription: 'sub',
+    new_subscription_count: 'sub',
+    new_bit: 'bits',
+    new_cheerer: 'bits'
+  };
+
+  function el(id) { return document.getElementById(id); }
+
+  // remember latest names across overlay refreshes
+  function loadLatest() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveLatest() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(latest)); } catch (e) {}
+  }
+  var latest = loadLatest();
+
+  function setLatest(kind, text, quiet) {
+    var name = el(kind + '-name');
+    if (!text || name.textContent === text) return;
+    name.textContent = text;
+    latest[kind] = text;
+    saveLatest();
+    if (quiet) return;
+    name.classList.remove('pop');
+    void name.offsetWidth; // restart the animation
+    name.classList.add('pop');
+  }
+
+  // number watching: flare when a goal lands on a multiple of 4 or 5
+  var lastAmount = {};
+
+  function numbersAlign(kind) {
+    var col = el(kind + '-col');
+    col.classList.add('align');
+    setTimeout(function () { col.classList.remove('align'); }, 6000);
+  }
+
+  function setGoal(kind, goal) {
+    var fill = el(kind + '-fill');
+    el(kind + '-col').classList.toggle('no-goal', !goal);
+    if (!goal) {
+      el(kind + '-goal-label').textContent = 'No active goal';
+      el(kind + '-count').textContent = '—';
+      fill.style.width = '0%';
+      fill.classList.remove('done');
+      return;
+    }
+    var current = goal.current_amount || 0;
+    var target = goal.target_amount || 0;
+    if (kind in lastAmount && current !== lastAmount[kind] && current > 0 && (current % 4 === 0 || current % 5 === 0)) {
+      numbersAlign(kind);
+    }
+    lastAmount[kind] = current;
+    el(kind + '-goal-label').textContent = goal.description || (kind + ' goal');
+    el(kind + '-count').textContent = current + ' / ' + target;
+    fill.style.width = (target > 0 ? Math.min(100, current / target * 100) : 0) + '%';
+    fill.classList.toggle('done', target > 0 && current >= target);
+  }
+
+  function showStatus(msg) {
+    KINDS.forEach(function (kind) {
+      el(kind + '-col').classList.add('no-goal');
+      el(kind + '-goal-label').textContent = msg;
+    });
+  }
+
+  function helix(path) {
+    return fetch('https://api.twitch.tv/helix/' + path, {
+      headers: { 'Client-Id': cfg.clientId, 'Authorization': 'Bearer ' + cfg.token }
+    }).then(function (res) {
+      if (res.status === 401) throw new Error('auth');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+  }
+
+  function handleError(err) {
+    if (err.message === 'auth') showStatus('Token expired');
+    else console.warn('Twitch stats:', err);
+  }
+
+  var broadcasterId;
+
+  function pollGoals() {
+    helix('goals?broadcaster_id=' + broadcasterId).then(function (res) {
+      var byKind = {};
+      res.data.forEach(function (goal) {
+        var kind = GOAL_KIND[goal.type];
+        if (kind && !byKind[kind]) byKind[kind] = goal;
+      });
+      KINDS.forEach(function (kind) { setGoal(kind, byKind[kind]); });
+    }).catch(handleError);
+  }
+
+  /* ── SESSION: report tonight's events to the server for the ending screen's recap ── */
+  var streamStartIso = null;
+
+  function report(event) {
+    event.streamStart = streamStartIso;
+    fetch('/api/session/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(event)
+    }).catch(function () {}); // server not running: the recap just misses this one
+  }
+
+  window.CryptSession = { report: report };
+
+  var lastFollower = null;
+
+  function pollFollower() {
+    helix('channels/followers?first=1&broadcaster_id=' + broadcasterId).then(function (res) {
+      if (typeof res.total === 'number') report({ type: 'followerTotal', amount: res.total });
+      if (!res.data[0]) return;
+      var name = res.data[0].user_name;
+      // skip the first poll so reloading the overlay doesn't summon a familiar
+      if (lastFollower !== null && name !== lastFollower) {
+        if (window.CryptFx) window.CryptFx.manifest(name);
+        report({ type: 'follow', name: name });
+      }
+      lastFollower = name;
+      setLatest('follower', name);
+    }).catch(handleError);
+  }
+
+  var streamStart = null;
+
+  function pollStream() {
+    helix('streams?user_id=' + broadcasterId).then(function (res) {
+      streamStartIso = res.data[0] ? res.data[0].started_at : null;
+      var viewers = el('viewers');
+      viewers.textContent = res.data[0] ? res.data[0].viewer_count : '—';
+      viewers.classList.toggle('offline', !res.data[0]);
+      streamStart = streamStartIso ? Date.parse(streamStartIso) : null;
+      if (streamStartIso) report({ type: 'stream' });
+    }).catch(handleError);
+  }
+
+  function tick() {
+    pollGoals();
+    pollFollower();
+    pollStream();
+  }
+
+  /* ── TOP BAR CLOCK ── */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  // every so often the uptime briefly reads as MRD-0 experiences time
+  var TIME_GLITCHES = ['11,700 years', 'about ten years', 'since 1918', '██:██:██'];
+  var glitchUntil = 0;
+  var glitchText = '';
+  function scheduleTimeGlitch() {
+    setTimeout(function () {
+      if (streamStart) {
+        glitchText = TIME_GLITCHES[Math.floor(Math.random() * TIME_GLITCHES.length)];
+        glitchUntil = Date.now() + 1500;
+      }
+      scheduleTimeGlitch();
+    }, (8 + Math.random() * 10) * 60000);
+  }
+
+  function updateClock() {
+    var now = new Date();
+    el('local-time').textContent = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+
+    var uptime = el('uptime');
+    uptime.classList.toggle('offline', !streamStart);
+    uptime.classList.toggle('glitch', !!streamStart && Date.now() < glitchUntil);
+    if (!streamStart) {
+      uptime.textContent = 'offline';
+    } else if (Date.now() < glitchUntil) {
+      uptime.textContent = glitchText;
+    } else {
+      var secs = Math.max(0, Math.floor((now - streamStart) / 1000));
+      uptime.textContent = Math.floor(secs / 3600) + ':' + pad(Math.floor(secs % 3600 / 60)) + ':' + pad(secs % 60);
+    }
+  }
+
+  updateClock();
+  setInterval(updateClock, 1000);
+  scheduleTimeGlitch();
+
+  function start() {
+    if (!cfg.clientId || !cfg.token) {
+      showStatus('Add token to config/twitch-config.js');
+      return;
+    }
+    // the token belongs to the broadcaster, so /users returns their id
+    helix('users').then(function (res) {
+      broadcasterId = res.data[0].id;
+      tick();
+      setInterval(tick, POLL_MS);
+    }).catch(function (err) {
+      handleError(err);
+      if (err.message !== 'auth') setTimeout(start, POLL_MS);
+    });
+  }
+
+  KINDS.forEach(function (kind) { setLatest(kind, latest[kind], true); });
+
+  // chat script reports subs and cheers through this; the Test page uses numbersAlign
+  window.CryptStats = { setLatest: setLatest, numbersAlign: numbersAlign };
+
+  start();
+})();
+</script>
+
+<script>
+(function () {
+  var CHANNEL = 'yourname';
+  var MAX_MESSAGES = 40;
+  var container = document.getElementById('chat-messages');
+
+  var BADGE_ICONS = {
+    broadcaster: '♛',
+    moderator: '⚔',
+    vip: '✦',
+    subscriber: '⸸',
+    founder: '⸸'
+  };
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function parseTags(tagStr) {
+    var tags = {};
+    tagStr.split(';').forEach(function (pair) {
+      var idx = pair.indexOf('=');
+      if (idx === -1) return;
+      tags[pair.slice(0, idx)] = pair.slice(idx + 1);
+    });
+    return tags;
+  }
+
+  // IRC tag values escape spaces as \s
+  function unescapeTag(v) {
+    return (v || '').replace(/\\s/g, ' ');
+  }
+
+  function renderMessageText(text, emotesTag) {
+    if (!emotesTag) return escapeHtml(text);
+
+    var chars = Array.from(text);
+    var replacements = [];
+    emotesTag.split('/').forEach(function (group) {
+      var parts = group.split(':');
+      var id = parts[0], positions = parts[1];
+      if (!id || !positions) return;
+      positions.split(',').forEach(function (range) {
+        var bounds = range.split('-').map(Number);
+        replacements.push({ id: id, start: bounds[0], end: bounds[1] });
+      });
+    });
+    if (!replacements.length) return escapeHtml(text);
+
+    replacements.sort(function (a, b) { return a.start - b.start; });
+    var result = '';
+    var cursor = 0;
+    replacements.forEach(function (r) {
+      if (r.start < cursor) return;
+      result += escapeHtml(chars.slice(cursor, r.start).join(''));
+      var code = chars.slice(r.start, r.end + 1).join('');
+      result += '<img class="chat-msg-emote" src="https://static-cdn.jtvnw.net/emoticons/v2/' + r.id + '/default/dark/1.0" alt="' + escapeHtml(code) + '" title="' + escapeHtml(code) + '">';
+      cursor = r.end + 1;
+    });
+    result += escapeHtml(chars.slice(cursor).join(''));
+    return result;
+  }
+
+  var lastMaiLook = 0;
+
+  function addMessage(msg) {
+    var row = document.createElement('div');
+    row.className = 'chat-message';
+
+    var isMai = !!(window.MaiFace && window.MaiFace.botUsername && msg.login === window.MaiFace.botUsername);
+    if (isMai) row.classList.add('mai-msg');
+
+    // Mai glances down at the new message
+    if (!isMai && window.MaiFace && window.MaiFace.live && Date.now() - lastMaiLook > 1500) {
+      lastMaiLook = Date.now();
+      window.MaiFace.live.look('down');
+    }
+
+    if (msg.firstMsg) {
+      row.classList.add('first-soul');
+      var soul = document.createElement('div');
+      soul.className = 'first-soul-line';
+      soul.textContent = '⸸ a new cryptling stirs';
+      row.appendChild(soul);
+    }
+
+    var header = document.createElement('div');
+    header.className = 'chat-msg-header';
+
+    // Mai's face as it was when she said this
+    if (isMai && window.MaiFace.live) {
+      var snap = window.MaiFace.live.snapshot();
+      snap.classList.add('chat-msg-mai-face');
+      header.appendChild(snap);
+    }
+
+    if (msg.badges) {
+      Object.keys(BADGE_ICONS).forEach(function (key) {
+        var has = msg.badges.split(',').some(function (b) { return b.indexOf(key + '/') === 0; });
+        if (has) {
+          var icon = document.createElement('span');
+          icon.className = 'chat-msg-badge';
+          icon.textContent = BADGE_ICONS[key];
+          header.appendChild(icon);
+        }
+      });
+    }
+
+    var name = document.createElement('span');
+    name.className = 'chat-msg-name';
+    name.textContent = msg.displayName;
+    name.style.color = msg.color || 'var(--gold)';
+    header.appendChild(name);
+
+    row.appendChild(header);
+
+    var body = document.createElement('div');
+    body.className = 'chat-msg-text';
+    body.innerHTML = renderMessageText(msg.text, msg.emotes);
+    row.appendChild(body);
+
+    container.appendChild(row);
+    while (container.children.length > MAX_MESSAGES) {
+      container.removeChild(container.firstChild);
+    }
+    container.scrollTop = container.scrollHeight;
+    return row;
+  }
+
+  // the panel's Test page shows fake messages through this (nothing is reported to the recap)
+  window.CryptChat = {
+    inject: function (msg) {
+      var row = addMessage(msg);
+      if (window.CryptFx && window.CryptFx.mentionsGod(msg.text)) window.CryptFx.distort(row, true);
+      return row;
+    }
+  };
+
+  var ws;
+  var reconnectDelay = 1000;
+
+  function connect() {
+    ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+
+    ws.onopen = function () {
+      reconnectDelay = 1000;
+      var nick = 'justinfan' + Math.floor(10000 + Math.random() * 90000);
+      ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+      ws.send('PASS SCHMOOPIIE');
+      ws.send('NICK ' + nick);
+      ws.send('JOIN #' + CHANNEL);
+    };
+
+    ws.onmessage = function (event) {
+      var lines = event.data.split('\r\n').filter(Boolean);
+      lines.forEach(function (line) {
+        if (line.indexOf('PING') === 0) {
+          ws.send('PONG :tmi.twitch.tv');
+          return;
+        }
+
+        var tags = {};
+        var rest = line;
+        if (line.charAt(0) === '@') {
+          var spaceIdx = line.indexOf(' ');
+          tags = parseTags(line.slice(1, spaceIdx));
+          rest = line.slice(spaceIdx + 1);
+        }
+
+        var command = rest.split(' ')[1];
+
+        if (command === 'USERNOTICE' && window.CryptStats) {
+          var msgId = tags['msg-id'];
+          var subName = null;
+          if (msgId === 'sub' || msgId === 'resub') subName = unescapeTag(tags['display-name']);
+          else if (msgId === 'subgift') subName = unescapeTag(tags['msg-param-recipient-display-name']);
+          if (subName) {
+            window.CryptStats.setLatest('sub', subName);
+            if (window.CryptSession) window.CryptSession.report({ type: 'sub', name: subName, id: tags['id'] });
+          }
+        }
+
+        if (command === 'USERNOTICE' && tags['msg-id'] === 'raid' && window.CryptFx) {
+          window.CryptFx.breach(unescapeTag(tags['msg-param-displayName']), tags['msg-param-viewerCount']);
+          if (window.CryptSession) {
+            window.CryptSession.report({ type: 'raid', name: unescapeTag(tags['msg-param-displayName']), amount: tags['msg-param-viewerCount'], id: tags['id'] });
+          }
+        }
+
+        if (command === 'PRIVMSG' && tags['bits'] && window.CryptStats) {
+          window.CryptStats.setLatest('bits', unescapeTag(tags['display-name']) + ' · ' + tags['bits']);
+          if (window.CryptSession) {
+            window.CryptSession.report({ type: 'bits', name: unescapeTag(tags['display-name']), amount: tags['bits'], id: tags['id'] });
+          }
+        }
+
+        if (command === 'PRIVMSG') {
+          var msgIdx = rest.indexOf(' :');
+          var text = rest.slice(msgIdx + 2);
+          var nameMatch = rest.match(/^:(\w+)!/);
+          var displayName = tags['display-name'] || (nameMatch && nameMatch[1]) || 'anon';
+          var row = addMessage({
+            login: nameMatch ? nameMatch[1].toLowerCase() : '',
+            firstMsg: tags['first-msg'] === '1',
+            displayName: displayName,
+            color: tags['color'],
+            badges: tags['badges'],
+            text: text,
+            emotes: tags['emotes']
+          });
+          if (window.CryptFx && window.CryptFx.mentionsGod(text)) window.CryptFx.distort(row);
+          if (tags['first-msg'] === '1' && window.CryptSession) {
+            window.CryptSession.report({ type: 'firstChat', name: displayName, id: tags['id'] });
+          }
+        }
+      });
+    };
+
+    ws.onclose = scheduleReconnect;
+    ws.onerror = function () { ws.close(); };
+  }
+
+  function scheduleReconnect() {
+    setTimeout(connect, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+  }
+
+  connect();
+})();
+</script>
+
+<script>
+/* ── TEST MODE: fake events fired from the panel's Test page ──
+ * Effects only: nothing here is saved, reported to the ending recap, or counted in the stats. */
+(function () {
+  var POLL_MS = 1500;
+  var boot = null;
+  var lastId = null;
+
+  function testChatter(text, firstMsg) {
+    return { login: 'testcryptling', displayName: 'TestCryptling', color: '#9b7bd4', text: text, firstMsg: !!firstMsg };
+  }
+
+  var HANDLERS = {
+    raid: function () { if (window.CryptFx) window.CryptFx.breach('TestRaider', 23); },
+    follow: function () { if (window.CryptFx) window.CryptFx.manifest('TestFollower'); },
+    familiar: function () { if (window.CryptFx) window.CryptFx.manifest(); },
+    firstChat: function () { if (window.CryptChat) window.CryptChat.inject(testChatter('hello?? first time here', true)); },
+    god: function () { if (window.CryptChat) window.CryptChat.inject(testChatter('all hail Sutekh')); },
+    mai: function () {
+      var bot = (window.MaiFace && window.MaiFace.botUsername) || 'maidaemon0';
+      if (window.CryptChat) window.CryptChat.inject({ login: bot, displayName: 'MaiDaemon0', color: '#818cf8', text: 'I see you, test cryptling.' });
+    },
+    numbers: function () { if (window.CryptStats) window.CryptStats.numbersAlign('follower'); }
+  };
+
+  function poll() {
+    fetch('/api/test').then(function (res) { return res.json(); }).then(function (data) {
+      // first look (or the server restarted): start from now, don't replay old tests
+      if (data.boot !== boot || lastId === null) {
+        boot = data.boot;
+        lastId = data.last;
+        return;
+      }
+      data.events.forEach(function (ev) {
+        if (ev.id > lastId && HANDLERS[ev.type]) HANDLERS[ev.type]();
+      });
+      lastId = data.last;
+    }).catch(function () {});
+  }
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+
+<script>
+/* ── COLLAB: plates, per-person Fugi avatars and guides from the panel's Collab page
+ *    (data/crypt-state.json → collab). Rebuilt only when the cast changes, so Fugi frames don't reload. */
+(function () {
+  if (!document.body.classList.contains('collab')) return;
+  var POLL_MS = 2000;
+  var plates = document.getElementById('collab-plates');
+  var guides = document.getElementById('collab-guides');
+  var last = null;
+
+  // only Fugi's own links may be loaded into the overlay
+  function fugiLink(url) {
+    try {
+      var u = new URL(url);
+      return u.protocol === 'https:' && /(^|\.)fugi\.tech$/.test(u.hostname) ? u.href : null;
+    } catch (e) { return null; }
+  }
+
+  function render(collab) {
+    var people = (collab.people || []).filter(function (p) { return p && p.name; }).slice(0, 6);
+    document.body.classList.toggle('guides', !!collab.guides);
+
+    var key = JSON.stringify([people, !!collab.guides]);
+    if (key === last) return;
+    last = key;
+
+    plates.innerHTML = '';
+    guides.innerHTML = '';
+    people.forEach(function (person, i) {
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+
+      // their Fugi avatar sits right above their plate
+      var link = fugiLink(person.fugi || '');
+      if (link) {
+        var frame = document.createElement('iframe');
+        frame.className = 'slot-fugi';
+        frame.title = 'Fugi · ' + person.name;
+        frame.setAttribute('allowtransparency', 'true');
+        frame.src = link;
+        slot.appendChild(frame);
+      }
+
+      var plate = document.createElement('div');
+      plate.className = 'plate' + (person.host ? ' host' : '');
+      var name = document.createElement('div');
+      name.className = 'plate-name';
+      name.textContent = person.name;
+      plate.appendChild(name);
+      if (person.handle) {
+        var handle = document.createElement('div');
+        handle.className = 'plate-handle';
+        handle.textContent = person.handle;
+        plate.appendChild(handle);
+      }
+      slot.appendChild(plate);
+      plates.appendChild(slot);
+
+      var guide = document.createElement('div');
+      guide.className = 'guide';
+      var label = document.createElement('span');
+      label.textContent = (i + 1) + ' · ' + person.name;
+      guide.appendChild(label);
+      guides.appendChild(guide);
+    });
+  }
+
+  function load() {
+    fetch('/api/state').then(function (res) { return res.json(); })
+      .then(function (state) { render(state.collab || {}); }).catch(function () {});
+  }
+
+  load();
+  setInterval(load, POLL_MS);
+})();
+</script>
+
+<!-- transparent windows for OBS sources -->
+<script src="js/holes.js"></script>
+
+</body>
+</html>

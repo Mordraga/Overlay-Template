@@ -1,0 +1,17 @@
+# Twitch token — never commit (copy config/twitch-config.example.js to set one up)
+config/twitch-config.js
+
+# tonight's recap for the ending screen; rebuilt every stream
+data/crypt-session.json
+
+# server output when run from the tray
+data/server.log
+
+# half-written saves from the server's safe-write
+*.tmp
+
+__pycache__/
+*.pyc
+
+# rendered stinger videos; rebuild with python stinger/render.py
+stinger/out/

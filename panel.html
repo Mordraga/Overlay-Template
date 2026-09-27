@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">changes show on stream within a few seconds</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <!-- ── AT A GLANCE ── -->
+  <section>
+    <h2>⸸ At a Glance</h2>
+    <div class="glance">
+      <div class="glance-row"><span class="glance-name">Starting soon</span><span class="glance-value" id="g-startingSoon"></span><span></span></div>
+      <div class="glance-row"><span class="glance-name">Intermission</span><span class="glance-value" id="g-intermission"></span><span></span></div>
+      <div class="glance-row"><span class="glance-name">Ending</span><span class="glance-value" id="g-ending"></span><span></span></div>
+      <div class="glance-row"><span class="glance-name">Fansly starting soon</span><span class="glance-value" id="g-fanslyStartingSoon"></span><span></span></div>
+      <div class="glance-row"><span class="glance-name">Fansly ending</span><span class="glance-value" id="g-fanslyEnding"></span><span></span></div>
+      <div class="glance-row">
+        <span class="glance-name" id="g-counter-label">Counter</span>
+        <span class="glance-value" id="g-counter">0</span>
+        <span class="glance-actions">
+          <button class="small" id="g-minus">−1</button>
+          <button class="small primary" id="g-plus">+1</button>
+        </span>
+      </div>
+      <div class="glance-row">
+        <span class="glance-name">Twitch token</span>
+        <span class="glance-value idle" id="g-token">checking…</span>
+        <span></span>
+      </div>
+      <div class="glance-row">
+        <span class="glance-name">Mai</span>
+        <span class="glance-mai"><span class="glance-mai-face" id="g-mai-face"></span><span class="glance-value idle" id="g-mai">…</span></span>
+        <span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAGES ── -->
+  <section>
+    <h2>✦ Pages</h2>
+    <div class="page-cards">
+      <a class="page-card" href="panel-timers.html"><b>Timers</b><span>starting soon, intermission, both endings</span></a>
+      <a class="page-card" href="panel-counter.html"><b>Counter</b><span>the Fansly counter and its text</span></a>
+      <a class="page-card" href="panel-faces.html"><b>Face Workshop</b><span>build faces for Mai's moods</span></a>
+      <a class="page-card" href="panel-cards.html"><b>Cards</b><span>rotating cards, Twitch and Fansly decks</span></a>
+      <a class="page-card" href="panel-collab.html"><b>Collab</b><span>name plates for up to 6 VTubers</span></a>
+    </div>
+  </section>
+
+  <section class="links">
+    <h2>⸸ OBS Browser Sources</h2>
+    <ul>
+      <li><a href="/layout.html" target="_blank">localhost:8765/layout.html</a> — main layout</li>
+      <li><a href="/layout.html?collab" target="_blank">localhost:8765/layout.html?collab</a> — collab layout (up to 6 VTubers)</li>
+      <li><a href="/starting-soon.html" target="_blank">localhost:8765/starting-soon.html</a> — starting soon</li>
+      <li><a href="/intermission.html" target="_blank">localhost:8765/intermission.html</a> — intermission</li>
+      <li><a href="/ending.html" target="_blank">localhost:8765/ending.html</a> — ending</li>
+      <li><a href="/fansly-starting-soon.html" target="_blank">localhost:8765/fansly-starting-soon.html</a> — Fansly starting soon</li>
+      <li><a href="/fansly-layout.html" target="_blank">localhost:8765/fansly-layout.html</a> — Fansly layout</li>
+      <li><a href="/fansly-intermission.html" target="_blank">localhost:8765/fansly-intermission.html</a> — Fansly intermission</li>
+      <li><a href="/fansly-ending.html" target="_blank">localhost:8765/fansly-ending.html</a> — Fansly ending</li>
+    </ul>
+  </section>
+
+</div>
+
+<script src="js/mai-face.js"></script>
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post, pad = P.pad;
+
+  var TIMERS = ['startingSoon', 'intermission', 'ending', 'fanslyStartingSoon', 'fanslyEnding'];
+  var customFaces = {};
+
+  /* ── TIMERS + COUNTER at a glance ── */
+  function renderTimers() {
+    TIMERS.forEach(function (key) {
+      var el = $('g-' + key);
+      var endsAt = Number((P.state[key] || {}).endsAt) || 0;
+      el.classList.toggle('idle', !endsAt);
+      if (!endsAt) { el.textContent = 'not running'; return; }
+      var left = Math.ceil((endsAt - Date.now()) / 1000);
+      if (left <= 0) { el.textContent = 'done'; return; }
+      var h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
+      el.textContent = (h ? h + ':' + pad(m) : m) + ':' + pad(s);
+    });
+  }
+
+  function renderCounter() {
+    var c = P.state.fanslyCounter || {};
+    $('g-counter-label').textContent = c.label || 'Counter';
+    $('g-counter').textContent = Number(c.value) || 0;
+  }
+
+  function refresh() {
+    P.load().then(function (s) {
+      customFaces = s.maiFaces || {};
+      renderTimers();
+      renderCounter();
+    }).catch(function () {});
+  }
+
+  function counterCall(body) {
+    fetch('/api/counter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function () { refresh(); });
+  }
+
+  $('g-plus').onclick = function () { counterCall({ delta: 1 }); };
+  $('g-minus').onclick = function () { counterCall({ delta: -1 }); };
+
+  /* ── MAI ── */
+  var face = MaiFace.create($('g-mai-face'));
+
+  function refreshMai() {
+    fetch('/api/mai').then(function (res) { return res.json(); }).then(function (mai) {
+      var status = $('g-mai');
+      status.classList.toggle('idle', !mai.awake);
+      if (!mai.awake) {
+        status.textContent = 'asleep (not running)';
+        face.setMood('asleep');
+        return;
+      }
+      status.textContent = mai.mood;
+      if (customFaces[mai.mood]) face.setMood(mai.mood, customFaces[mai.mood]);
+      else face.setMood(MaiFace.builtIn.indexOf(mai.mood) !== -1 ? mai.mood : 'neutral');
+    }).catch(function () {});
+  }
+
+  /* ── TWITCH TOKEN (checked by panel-common.js) ── */
+  function showToken(t) {
+    var el = $('g-token');
+    el.classList.toggle('idle', t.state !== 'ok');
+    el.classList.toggle('warn', t.state === 'expired' || (t.state === 'ok' && t.days <= 7));
+    if (t.state === 'ok') el.textContent = t.days + (t.days === 1 ? ' day' : ' days') + ' left';
+    else if (t.state === 'expired') el.textContent = 'expired';
+    else if (t.state === 'missing') el.textContent = 'not set';
+    else el.textContent = "couldn't check";
+  }
+  document.addEventListener('crypt-token', function (e) { showToken(e.detail); });
+  if (P.token) showToken(P.token);
+
+  refresh();
+  refreshMai();
+  setInterval(refresh, 2000);
+  setInterval(refreshMai, 3000);
+  setInterval(renderTimers, 250);
+})();
+</script>
+</body>
+</html>

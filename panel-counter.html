@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counter — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">the Fansly counter</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section>
+    <h2>⸸ Fansly Counter</h2>
+    <div class="timer-display" id="counter-display">0</div>
+    <div class="row">
+      <button id="counter-minus">−1</button>
+      <button class="primary" id="counter-plus">+1</button>
+      <button id="counter-reset">Reset</button>
+      <input type="number" id="counter-set-value" value="0">
+      <button id="counter-set">Set to</button>
+      <span class="hint">or press + / − on this page</span>
+    </div>
+    <div class="row">
+      <label class="field grow">Label (above the number)
+        <input type="text" id="counter-label">
+      </label>
+      <label class="field grow">Small line (under the number, optional)
+        <input type="text" id="counter-sub">
+      </label>
+    </div>
+    <div class="row">
+      <button id="counter-save">Save text</button>
+      <span class="status" id="counter-status"></span>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post, pad = P.pad;
+
+  /* ── FANSLY COUNTER ── */
+  function showCount(counter) {
+    $('counter-display').textContent = Number((counter || {}).value) || 0;
+  }
+
+  function counterCall(body) {
+    return fetch('/api/counter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (counter) {
+      showCount(counter);
+      setStatus('counter-status', '');
+    }).catch(function (err) { setStatus('counter-status', 'Could not update: ' + err.message, 'error'); });
+  }
+
+  $('counter-plus').onclick = function () { counterCall({ delta: 1 }); };
+  $('counter-minus').onclick = function () { counterCall({ delta: -1 }); };
+  $('counter-reset').onclick = function () {
+    if (confirm('Reset the counter to 0?')) counterCall({ set: 0 });
+  };
+  $('counter-set').onclick = function () { counterCall({ set: Number($('counter-set-value').value) || 0 }); };
+
+  $('counter-save').onclick = function () {
+    // keep the current count; only the text changes
+    fetch('/api/state').then(function (res) { return res.json(); }).then(function (fresh) {
+      var counter = Object.assign({}, fresh.fanslyCounter || {}, {
+        label: $('counter-label').value.trim(),
+        sub: $('counter-sub').value.trim()
+      });
+      return post({ fanslyCounter: counter });
+    })
+      .then(function () { setStatus('counter-status', 'Text saved.'); })
+      .catch(function (err) { setStatus('counter-status', 'Could not save: ' + err.message, 'error'); });
+  };
+
+  // + / − keys bump the counter, unless you're typing in a field
+  document.addEventListener('keydown', function (e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '+' || e.key === '=') counterCall({ delta: 1 });
+    if (e.key === '-' || e.key === '_') counterCall({ delta: -1 });
+  });
+
+  // keep the displayed count in sync if it changes from elsewhere
+  setInterval(function () {
+    fetch('/api/state').then(function (res) { return res.json(); })
+      .then(function (fresh) { showCount(fresh.fanslyCounter); }).catch(function () {});
+  }, 3000);
+
+
+  /* ── LOAD ── */
+  P.load().then(function (s) {
+    var counter = s.fanslyCounter || {};
+    $('counter-label').value = counter.label || '';
+    $('counter-sub').value = counter.sub || '';
+    showCount(counter);
+  }).catch(function () {
+    setStatus('counter-status', 'Could not reach the server. Is it running?', 'error');
+  });
+})();
+</script>
+</body>
+</html>

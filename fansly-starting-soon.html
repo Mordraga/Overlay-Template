@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fansly Starting Soon — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --surface2:  #1a141a;
+    --border:    #1f2338;
+    --border2:   #2a3350;
+    --accent:    #1a3a8b;
+    --accent-hi: #3a5fc4;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--black);
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(26,58,139,0.09) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(26,58,139,0.06) 0%, transparent 60%);
+  }
+
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* ── CORNER BRACKETS ── */
+  .corner {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-color: var(--border2);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .corner-tl { top: 40px; left: 40px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 40px; right: 40px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 40px; left: 40px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 40px; right: 40px; border-width: 0 1px 1px 0; }
+
+  .bar-top, .bar-bottom {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+  .bar-top    { top: 0; }
+  .bar-bottom { bottom: 0; }
+
+  /* ── CENTER CONTENT ── */
+  .center {
+    position: absolute;
+    top: 150px;
+    left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sigil-row {
+    font-size: 1.1rem;
+    color: var(--accent-hi);
+    letter-spacing: 1em;
+    margin-bottom: 2rem;
+    animation: sigilPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes sigilPulse {
+    0%, 100% { opacity: 0.5; text-shadow: none; }
+    50% { opacity: 1; text-shadow: 0 0 20px rgba(58,95,196,0.8); }
+  }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    animation: goldShimmer 6s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--gold-dim) 0%, var(--gold) 20%, var(--gold-pale) 40%, var(--gold) 60%, var(--gold-dim) 80%, var(--gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes goldShimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .tagline {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    color: var(--text-mute);
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+    animation: fadeSlowly 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes fadeSlowly {
+    from { opacity: 0.4; }
+    to   { opacity: 0.8; }
+  }
+
+  .divider {
+    width: 400px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    margin-bottom: 2.5rem;
+  }
+
+  .label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    letter-spacing: 0.6em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    animation: fadeSlowly 4s ease-in-out infinite alternate;
+  }
+
+  /* ── COUNTDOWN ── */
+  .countdown {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 5rem;
+    font-weight: 400;
+    color: var(--gold-pale);
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    text-shadow: 0 0 24px rgba(201,168,76,0.25);
+    min-height: 1.1em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .countdown.done {
+    font-size: 2.6rem;
+    color: var(--gold);
+    animation: doneGlow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes doneGlow {
+    0%, 100% { text-shadow: 0 0 12px rgba(201,168,76,0.3); }
+    50%      { text-shadow: 0 0 32px rgba(232,212,154,0.8); }
+  }
+
+  /* dots stand in for the countdown when no timer is running */
+  .dots { height: 5.5rem; display: flex; align-items: center; }
+  .dots span {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent-hi);
+    margin: 0 8px;
+    animation: dotPulse 1.5s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.3s; }
+  .dots span:nth-child(3) { animation-delay: 0.6s; }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 8px var(--accent-hi); }
+  }
+
+  .hide { display: none !important; }
+
+  /* ── INCENSE LINE ── */
+  .incense {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 1.4rem;
+    font-style: italic;
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+
+  .ember {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff7a3a;
+    box-shadow: 0 0 10px #ff7a3a, 0 0 20px rgba(139,26,26,0.8);
+    animation: emberPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes emberPulse {
+    0%, 100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+  }
+
+  .smoke {
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    margin-left: -4px;
+    border-radius: 50%;
+    background: rgba(212,201,212,0.35);
+    filter: blur(4px);
+    opacity: 0;
+    animation: smokeRise 5s ease-out infinite;
+  }
+  .smoke:nth-child(2) { animation-delay: 1.7s; }
+  .smoke:nth-child(3) { animation-delay: 3.4s; }
+
+  @keyframes smokeRise {
+    0%   { transform: translate(0, 0) scale(0.6); opacity: 0; }
+    15%  { opacity: 0.6; }
+    100% { transform: translate(var(--sway, 10px), -90px) scale(2.6); opacity: 0; }
+  }
+  .smoke:nth-child(2) { --sway: -12px; }
+
+  /* ── ROTATING CARD ── */
+  .rotator {
+    position: absolute;
+    left: 50%;
+    bottom: 120px;
+    width: 1000px;
+    height: 170px;
+    margin-left: -500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .rot-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.8s ease;
+  }
+
+  .rot-card.hidden { opacity: 0; }
+
+  .rot-kicker {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  .rot-kicker .sig { color: var(--accent-hi); }
+
+  .rot-main {
+    font-family: 'Cinzel', serif;
+    font-size: 34px;
+    letter-spacing: 0.06em;
+    color: var(--gold-pale);
+    line-height: 1.3;
+  }
+
+  .rot-sub {
+    font-style: italic;
+    font-size: 22px;
+    color: var(--text-dim);
+  }
+
+  .rot-card.quote .rot-main,
+  .rot-card.file .rot-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    letter-spacing: 0;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .rot-card.quote .rot-main { font-style: italic; }
+
+  .rot-card.long .rot-main { font-size: 28px; }
+
+  .rot-card.quote .rot-sub,
+  .rot-card.file .rot-sub {
+    font-family: 'Cinzel', serif;
+    font-style: normal;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  .rot-card.file .rot-kicker {
+    color: var(--accent-hi);
+    text-shadow: 0 0 10px rgba(58,95,196,0.5);
+  }
+
+  .rot-card.exact .rot-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 40px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── BOTTOM STRIP ── */
+  .bottom-strip {
+    position: absolute;
+    bottom: 60px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .bottom-item {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    color: var(--text-mute);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .bottom-sep {
+    color: var(--accent-hi);
+    font-size: 0.6rem;
+    opacity: 0.4;
+  }
+
+  /* ── FLOATING PARTICLES ── */
+  .particle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-400px) translateX(var(--drift)); opacity: 0; }
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: orbPulse 8s ease-in-out infinite;
+  }
+  .orb-red {
+    width: 600px; height: 300px;
+    background: rgba(26,58,139,0.08);
+    top: 55%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .orb-gold {
+    width: 400px; height: 200px;
+    background: rgba(201,168,76,0.04);
+    top: 35%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 4s;
+  }
+
+  @keyframes orbPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="orb orb-red"></div>
+<div class="orb orb-gold"></div>
+
+<div class="bar-top"></div>
+<div class="bar-bottom"></div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="center">
+  <div class="sigil-row">⸸ ✦ ⸸</div>
+  <h1 class="title">YOUR NAME</h1>
+  <p class="tagline">Your &nbsp;·&nbsp; Tagline &nbsp;·&nbsp; Here</p>
+  <div class="divider"></div>
+  <div class="label">Starting Soon</div>
+  <div class="countdown hide" id="countdown"></div>
+  <div class="dots" id="dots"><span></span><span></span><span></span></div>
+  <div class="incense">
+    <div class="ember"><div class="smoke"></div><div class="smoke"></div><div class="smoke"></div></div>
+    <span id="message"></span>
+  </div>
+</div>
+
+<!-- rotating cards: edited in the control panel (panel.html) -->
+<div class="rotator">
+  <div class="rot-card hidden" id="rot-card">
+    <div class="rot-kicker" id="rot-kicker"></div>
+    <div class="rot-main" id="rot-main"></div>
+    <div class="rot-sub" id="rot-sub"></div>
+  </div>
+</div>
+
+<div class="bottom-strip">
+  <span class="bottom-item">The Crypt</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">fansly.com/yourname</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">she / they</span>
+</div>
+
+<script src="js/rotator.js" data-deck="rotatorFansly"></script>
+
+<script src="js/countdown.js" data-key="fanslyStartingSoon"></script>
+
+<script>
+(function () {
+  // floating particles (same as intermission)
+  for (var i = 0; i < 30; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText =
+      'left:' + Math.random() * 100 + '%;' +
+      'bottom:' + Math.random() * 20 + '%;' +
+      'width:' + (Math.random() * 3 + 1) + 'px;' +
+      'height:' + (Math.random() * 3 + 1) + 'px;' +
+      '--drift:' + (Math.random() - 0.5) * 200 + 'px;' +
+      'animation-duration:' + (Math.random() * 8 + 6) + 's;' +
+      'animation-delay:' + Math.random() * 8 + 's;';
+    document.body.appendChild(p);
+  }
+})();
+</script>
+
+</body>
+</html>

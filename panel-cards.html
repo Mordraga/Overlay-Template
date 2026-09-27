@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cards — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">rotating cards for Twitch and Fansly</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section>
+    <h2>✦ Rotating Cards</h2>
+    <div class="row">
+      <select id="deck" style="width:auto">
+        <option value="rotator">Twitch deck</option>
+        <option value="rotatorFansly">Fansly deck</option>
+      </select>
+      <input type="number" id="show-seconds" min="3" max="120">
+      <span class="hint">seconds per card</span>
+    </div>
+    <p class="hint">
+      <b>quote</b>: a quote and who said it ·
+      <b>file</b>: F.E.T.B. lore excerpt ·
+      <b>card</b>: label, headline, small line.
+      Tick <b>exact</b> for case-sensitive links (like Discord invites).
+    </p>
+    <div class="items" id="items"></div>
+    <div class="savebar">
+      <button id="add-item">+ Add card</button>
+      <button class="primary" id="rot-save">Save cards</button>
+      <span class="status" id="rot-status"></span>
+    </div>
+  </section>
+
+
+<template id="item-template">
+  <div class="item">
+    <div class="item-top">
+      <span class="item-num"></span>
+      <select class="f-kind">
+        <option value="quote">quote</option>
+        <option value="file">file</option>
+        <option value="card">card</option>
+      </select>
+      <label class="check only-file"><input type="checkbox" class="f-say"> in quotes</label>
+      <label class="check only-card"><input type="checkbox" class="f-exact"> exact</label>
+      <span class="spacer"></span>
+      <button class="small" data-act="up" title="Move up">↑</button>
+      <button class="small" data-act="down" title="Move down">↓</button>
+      <button class="small" data-act="delete" title="Delete">✕</button>
+    </div>
+    <input type="text" class="f-kicker only-card" placeholder="Label (small gold text)">
+    <input type="text" class="f-main" placeholder="Main text">
+    <input type="text" class="f-sub" placeholder="Small line / who said it">
+  </div>
+</template>
+
+</div>
+
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post, pad = P.pad;
+
+  /* ── ROTATOR ── */
+  var itemsEl = $('items');
+  var template = $('item-template');
+
+  function markDirty() { setStatus('rot-status', 'Unsaved changes', 'dirty'); }
+
+  function renumber() {
+    Array.prototype.forEach.call(itemsEl.children, function (row, i) {
+      row.querySelector('.item-num').textContent = '#' + (i + 1);
+    });
+  }
+
+  function addRow(item, atTop) {
+    var row = template.content.firstElementChild.cloneNode(true);
+    var kind = item.kind || 'card';
+    row.dataset.kind = kind;
+    row.querySelector('.f-kind').value = kind;
+    row.querySelector('.f-kicker').value = item.kicker || '';
+    row.querySelector('.f-main').value = item.main || '';
+    row.querySelector('.f-sub').value = item.sub || '';
+    row.querySelector('.f-say').checked = !!item.say;
+    row.querySelector('.f-exact').checked = !!item.exact;
+    if (atTop) itemsEl.insertBefore(row, itemsEl.firstChild);
+    else itemsEl.appendChild(row);
+    return row;
+  }
+
+  function readRow(row) {
+    var kind = row.querySelector('.f-kind').value;
+    var item = { kind: kind };
+    if (kind === 'card') item.kicker = row.querySelector('.f-kicker').value.trim();
+    item.main = row.querySelector('.f-main').value.trim();
+    item.sub = row.querySelector('.f-sub').value.trim();
+    if (kind === 'file' && row.querySelector('.f-say').checked) item.say = true;
+    if (kind === 'card' && row.querySelector('.f-exact').checked) item.exact = true;
+    return item;
+  }
+
+  itemsEl.addEventListener('input', markDirty);
+  itemsEl.addEventListener('change', function (e) {
+    if (e.target.classList.contains('f-kind')) {
+      e.target.closest('.item').dataset.kind = e.target.value;
+    }
+    markDirty();
+  });
+
+  itemsEl.addEventListener('click', function (e) {
+    var act = e.target.dataset.act;
+    if (!act) return;
+    var row = e.target.closest('.item');
+    if (act === 'up' && row.previousElementSibling) itemsEl.insertBefore(row, row.previousElementSibling);
+    if (act === 'down' && row.nextElementSibling) itemsEl.insertBefore(row.nextElementSibling, row);
+    if (act === 'delete') {
+      var text = row.querySelector('.f-main').value;
+      if (text && !confirm('Delete this card?\n\n' + text)) return;
+      row.remove();
+    }
+    renumber();
+    markDirty();
+  });
+
+  $('show-seconds').addEventListener('input', markDirty);
+
+  $('add-item').onclick = function () {
+    var row = addRow({ kind: 'card' }, true);
+    renumber();
+    markDirty();
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.querySelector('.f-kicker').focus();
+  };
+
+  // which deck is being edited: rotator (Twitch pages) or rotatorFansly (Fansly pages)
+  var deck = 'rotator';
+
+  function loadDeck(key) {
+    deck = key;
+    $('deck').value = key;
+    var rot = P.state[key] || {};
+    $('show-seconds').value = rot.showSeconds || 12;
+    itemsEl.innerHTML = '';
+    (rot.items || []).forEach(function (item) { addRow(item); });
+    renumber();
+    setStatus('rot-status', '');
+  }
+
+  $('deck').addEventListener('change', function () {
+    var next = $('deck').value;
+    if ($('rot-status').classList.contains('dirty') && !confirm('Switch decks and throw away unsaved card edits?')) {
+      $('deck').value = deck;
+      return;
+    }
+    loadDeck(next);
+  });
+
+  $('rot-save').onclick = function () {
+    var items = Array.prototype.map.call(itemsEl.children, readRow)
+      .filter(function (item) { return item.main; });
+    var showSeconds = Math.max(3, Number($('show-seconds').value) || 12);
+    var update = {};
+    update[deck] = { showSeconds: showSeconds, items: items };
+    post(update)
+      .then(function () { setStatus('rot-status', 'Saved ' + items.length + ' cards.'); })
+      .catch(function (err) { setStatus('rot-status', 'Could not save: ' + err.message, 'error'); });
+  };
+
+
+  /* ── LOAD ── */
+  P.load().then(function () {
+    loadDeck('rotator');
+  }).catch(function () {
+    setStatus('rot-status', 'Could not reach the server. Is it running?', 'error');
+  });
+
+  // warn before closing the tab with unsaved card edits
+  window.addEventListener('beforeunload', function (e) {
+    if ($('rot-status').classList.contains('dirty')) { e.preventDefault(); e.returnValue = ''; }
+  });
+})();
+</script>
+</body>
+</html>

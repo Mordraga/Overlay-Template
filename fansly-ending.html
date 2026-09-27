@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fansly Ending — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #1f2338;
+    --border2:   #2a3350;
+    --accent:    #1a3a8b;
+    --accent-hi: #3a5fc4;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent; /* the backdrop is on .bg, with windows for OBS sources (js/holes.js) */
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* ── BACKGROUND (Fansly blue) ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 35% 50%, rgba(26,58,139,0.09) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(26,58,139,0.06) 0%, transparent 60%),
+      var(--black);
+  }
+
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .corner {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-color: var(--border2);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .corner-tl { top: 40px; left: 40px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 40px; right: 40px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 40px; left: 40px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 40px; right: 40px; border-width: 0 1px 1px 0; }
+
+  .bar-top, .bar-bottom {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+  .bar-top    { top: 0; }
+  .bar-bottom { bottom: 0; }
+
+  /* ── LEFT: title, counter, closing ── */
+  .left {
+    position: absolute;
+    left: 140px;
+    top: 60px; bottom: 110px; /* clear of the bottom strip */
+    width: 1000px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .sigil-row {
+    font-size: 1.1rem;
+    color: var(--accent-hi);
+    letter-spacing: 1em;
+    margin-bottom: 1.4rem;
+    animation: sigilPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes sigilPulse {
+    0%, 100% { opacity: 0.5; text-shadow: none; }
+    50% { opacity: 1; text-shadow: 0 0 20px rgba(58,95,196,0.8); }
+  }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 5rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    margin-bottom: 0.8rem;
+    animation: goldShimmer 6s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--gold-dim) 0%, var(--gold) 20%, var(--gold-pale) 40%, var(--gold) 60%, var(--gold-dim) 80%, var(--gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes goldShimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    color: var(--text-dim);
+    letter-spacing: 0.6em;
+    text-transform: uppercase;
+    margin-bottom: 1.6rem;
+  }
+
+  .divider {
+    width: 400px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    margin-bottom: 2rem;
+  }
+
+  /* ── COUNTER: the night's number, from the panel's Fansly Counter ── */
+  .counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 2rem;
+  }
+
+  .counter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .counter-label .sig { color: var(--accent-hi); }
+
+  .counter-value {
+    /* Cormorant's lining 0 is clearly a zero; Cinzel's reads as the letter O */
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 7rem;
+    line-height: 1.1;
+    color: var(--gold-pale);
+    text-shadow: 0 0 28px rgba(201,168,76,0.3);
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .counter-sub {
+    font-style: italic;
+    font-size: 1.3rem;
+    color: var(--text-dim);
+  }
+
+  /* ── CLOSING LINE + COUNTDOWN ── */
+  .message {
+    font-style: italic;
+    font-size: 1.8rem;
+    color: var(--text);
+    letter-spacing: 0.03em;
+    max-width: 860px;
+  }
+
+  .seal {
+    margin-top: 1.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    font-family: 'Cinzel Decorative', serif;
+  }
+
+  .seal-label {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+  }
+
+  .countdown {
+    font-size: 2.2rem;
+    color: var(--gold-pale);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .countdown.done {
+    font-size: 1.5rem;
+    color: var(--gold);
+    animation: doneGlow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes doneGlow {
+    0%, 100% { text-shadow: 0 0 12px rgba(201,168,76,0.3); }
+    50%      { text-shadow: 0 0 32px rgba(232,212,154,0.8); }
+  }
+
+  .seal:has(.countdown.hide) { display: none; }
+  .seal:has(.countdown.done) .seal-label { display: none; }
+
+  .hide { display: none !important; }
+
+  /* ── TIERS + TWITCH ── */
+  .tiers {
+    margin-top: 2.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+
+  .tiers .sep { color: var(--accent-hi); }
+  .tiers .handle { color: var(--text-dim); letter-spacing: 0.15em; text-transform: none; font-size: 15px; }
+
+  /* ── RIGHT: model frame (transparent — the model source sits over this in OBS) ── */
+  .model-frame {
+    position: absolute;
+    left: 1260px;
+    top: 150px;
+    width: 520px;
+    height: 780px;
+    border: 1px solid var(--border);
+  }
+
+  .model-frame::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .model-frame .fc {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+  }
+  .model-frame .fc-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .model-frame .fc-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .model-frame .fc-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .model-frame .fc-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .model-caption {
+    position: absolute;
+    left: 1260px;
+    top: 948px;
+    width: 520px;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+
+  .model-caption .sig { color: var(--accent-hi); }
+
+  /* ── BOTTOM STRIP ── */
+  .bottom-strip {
+    position: absolute;
+    bottom: 60px;
+    left: 140px;
+    width: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .bottom-item {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    color: var(--text-mute);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .bottom-sep {
+    color: var(--accent-hi);
+    font-size: 0.6rem;
+    opacity: 0.4;
+  }
+
+  /* ── FLOATING PARTICLES ── */
+  .particle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-400px) translateX(var(--drift)); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="bar-top"></div>
+<div class="bar-bottom"></div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="left">
+  <div class="sigil-row">⸸ ✦ ⸸</div>
+  <h1 class="title">YOUR NAME</h1>
+  <div class="label">The Rite Concludes</div>
+  <div class="divider"></div>
+
+  <!-- the night's number (hidden until the counter has a label) -->
+  <div class="counter hide" id="counter">
+    <div class="counter-label"><span class="sig">⸸</span> <span id="counter-label"></span> <span class="sig">⸸</span></div>
+    <div class="counter-value" id="counter-value">0</div>
+    <div class="counter-sub" id="counter-sub"></div>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div class="seal">
+    <span class="seal-label">Closing in</span>
+    <span class="countdown hide" id="countdown"></span>
+    <span id="dots" style="display:none"></span>
+  </div>
+
+  <div class="tiers">
+    <span>Devotees</span><span class="sep">⸸</span><span>Vessels</span>
+    <span class="sep">✦</span>
+    <span class="handle">twitch.tv/yourname</span>
+  </div>
+</div>
+
+<!-- MODEL AREA (transparent — put the model source over this in OBS: x 1260, y 150, 520 × 780) -->
+<div class="model-frame" data-hole>
+  <div class="fc fc-tl"></div>
+  <div class="fc fc-tr"></div>
+  <div class="fc fc-bl"></div>
+  <div class="fc fc-br"></div>
+</div>
+<div class="model-caption"><span class="sig">⸸</span> The Crypt <span class="sig">⸸</span></div>
+
+<div class="bottom-strip">
+  <span class="bottom-item">The Crypt</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">fansly.com/yourname</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">she / they</span>
+</div>
+
+<script src="js/countdown.js" data-key="fanslyEnding"></script>
+
+<script>
+/* ── COUNTER: the Fansly counter's final number ── */
+(function () {
+  var POLL_MS = 2000;
+  var box = document.getElementById('counter');
+  var label = document.getElementById('counter-label');
+  var value = document.getElementById('counter-value');
+  var sub = document.getElementById('counter-sub');
+
+  function load() {
+    fetch('/api/state').then(function (res) { return res.json(); }).then(function (state) {
+      var c = state.fanslyCounter || {};
+      box.classList.toggle('hide', !c.label);
+      label.textContent = c.label || '';
+      value.textContent = Number(c.value) || 0;
+      sub.textContent = c.sub || '';
+      sub.style.display = c.sub ? '' : 'none';
+    }).catch(function () {});
+  }
+
+  load();
+  setInterval(load, POLL_MS);
+
+  // floating particles (same as intermission)
+  for (var i = 0; i < 30; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText =
+      'left:' + Math.random() * 100 + '%;' +
+      'bottom:' + Math.random() * 20 + '%;' +
+      'width:' + (Math.random() * 3 + 1) + 'px;' +
+      'height:' + (Math.random() * 3 + 1) + 'px;' +
+      '--drift:' + (Math.random() - 0.5) * 200 + 'px;' +
+      'animation-duration:' + (Math.random() * 8 + 6) + 's;' +
+      'animation-delay:' + Math.random() * 8 + 's;';
+    document.body.appendChild(p);
+  }
+})();
+</script>
+
+<!-- transparent windows for OBS sources -->
+<script src="js/holes.js"></script>
+
+</body>
+</html>

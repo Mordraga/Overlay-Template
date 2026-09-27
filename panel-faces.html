@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Face Workshop — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">build Mai's faces</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section class="workshop">
+    <h2>✦ Mai Face Workshop</h2>
+    <p class="hint">
+      Build a face, then save it under one of Mai's moods. It replaces that mood's face on stream.
+      A brand-new mood name only shows once Mai can roll it, so add it in Mai's own Mood editor too.
+    </p>
+
+    <div class="workshop-grid">
+      <div class="preview-col">
+        <div class="preview-big" id="preview-big"></div>
+        <div class="preview-small-row"><div class="preview-small" id="preview-small"></div> stream size</div>
+        <div class="row" style="justify-content:center">
+          <button class="small" data-preset="calm">Calm</button>
+          <button class="small" data-preset="sleepy">Sleepy</button>
+          <button class="small" data-preset="gleeful">Gleeful</button>
+          <button class="small" data-preset="void">Void</button>
+        </div>
+        <span class="hint">start from a preset</span>
+      </div>
+
+      <div>
+        <div class="row">
+          <label class="field grow">Mood name
+            <input type="text" id="face-mood" list="mood-list" placeholder="e.g. spicy, or a new mood">
+            <datalist id="mood-list"></datalist>
+          </label>
+        </div>
+        <div class="row">
+          <button class="primary" id="face-save">Save face</button>
+          <button id="face-delete">Delete face</button>
+          <span class="status" id="face-status"></span>
+        </div>
+        <div class="saved-faces" id="saved-faces"></div>
+
+        <div id="face-controls"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/mai-face.js"></script>
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post, pad = P.pad;
+
+  /* ── FACE WORKSHOP ── */
+  var CONTROLS = [
+    { group: 'Eyes', items: [
+      { key: 'eyeStyle', type: 'select', label: 'Style', options: [['fill', 'Filled'], ['line', 'Line (closed, ^ ^)'], ['void', 'Void']] },
+      { key: 'eyeWidth', label: 'Width', min: 3, max: 13, step: 0.5 },
+      { key: 'eyeTop', label: 'Top curve', min: -8, max: 12, step: 0.5 },
+      { key: 'eyeBottom', label: 'Bottom curve', min: -8, max: 12, step: 0.5 },
+      { key: 'eyeGap', label: 'Spacing', min: 7, max: 18, step: 0.5 },
+      { key: 'eyeY', label: 'Height on face', min: 42, max: 58, step: 0.5 },
+      { key: 'eyeTilt', label: 'Tilt: sad ↔ fierce', min: -30, max: 30, step: 1 },
+      { key: 'lid', type: 'check', label: 'Heavy lids' }
+    ]},
+    { group: 'Pupils', items: [
+      { key: 'pupil', type: 'select', label: 'Shape', options: [['none', 'None'], ['dot', 'Dot'], ['round', 'Round'], ['slit', 'Slit'], ['pinprick', 'Pinprick (for void eyes)']] },
+      { key: 'pupilSize', label: 'Size', min: 0.4, max: 2, step: 0.05 },
+      { key: 'pupilX', label: 'Look left ↔ right', min: -5, max: 5, step: 0.25 },
+      { key: 'pupilY', label: 'Look up ↔ down', min: -5, max: 5, step: 0.25 }
+    ]},
+    { group: 'Mouth', items: [
+      { key: 'mouth', type: 'select', label: 'Shape', options: [['none', 'None'], ['line', 'Line'], ['open', 'Open']] },
+      { key: 'mouthWidth', label: 'Width', min: 3, max: 14, step: 0.5 },
+      { key: 'mouthCurve', label: 'Frown ↔ smile', min: -6, max: 6, step: 0.25 },
+      { key: 'mouthSkew', label: 'Smirk', min: -5, max: 5, step: 0.25 },
+      { key: 'mouthOpen', label: 'How open', min: 1, max: 8, step: 0.25 },
+      { key: 'mouthY', label: 'Height on face', min: 58, max: 72, step: 0.5 },
+      { key: 'fang', type: 'check', label: 'Fang' }
+    ]},
+    { group: 'Extras', items: [
+      { key: 'blush', type: 'check', label: 'Blush' },
+      { key: 'tear', type: 'check', label: 'Tear' },
+      { key: 'heart', type: 'check', label: 'Little heart' },
+      { key: 'third', type: 'select', label: 'Third eye', options: [['random', 'Opens now and then'], ['open', 'Always open'], ['hidden', 'Never']] }
+    ]},
+    { group: 'Colour & motion', items: [
+      { key: 'ring', type: 'color', label: 'Glow colour' },
+      { key: 'disc', type: 'color', label: 'Face colour' },
+      { key: 'spin', label: 'Tesseract speed', min: 0, max: 4, step: 0.1 },
+      { key: 'blink', type: 'check', label: 'Blinks' },
+      { key: 'glance', type: 'check', label: 'Glances around' }
+    ]}
+  ];
+
+  var PRESETS = {
+    calm: {},
+    sleepy: { eyeTop: 0.5, eyeBottom: 5, lid: true, pupil: 'dot', pupilY: 2, ring: '#5b5fa8', disc: '#1a1830', spin: 0.4, glance: false },
+    gleeful: { eyeStyle: 'line', eyeTop: 5.5, eyeY: 52, mouth: 'open', mouthCurve: 2, mouthOpen: 4, fang: true, ring: '#f59e0b', disc: '#3b2208', spin: 2.6 },
+    void: { eyeStyle: 'void', eyeTop: 8, eyeBottom: 8, pupil: 'pinprick', third: 'open', ring: '#a78bfa', disc: '#0e0a1f', spin: 3.2 }
+  };
+
+  var spec = MaiFace.defaults({});
+  var big = MaiFace.create($('preview-big'));
+  var small = MaiFace.create($('preview-small'));
+  var inputs = {};
+
+  function fmt(v) { return Math.round(v * 100) / 100; }
+
+  function buildControls() {
+    var host = $('face-controls');
+    CONTROLS.forEach(function (group) {
+      var h = document.createElement('h3');
+      h.textContent = group.group;
+      host.appendChild(h);
+      var checks = document.createElement('div');
+      checks.className = 'checks';
+
+      group.items.forEach(function (c) {
+        var input;
+        if (c.type === 'check') {
+          var label = document.createElement('label');
+          label.className = 'check';
+          input = document.createElement('input');
+          input.type = 'checkbox';
+          label.appendChild(input);
+          label.appendChild(document.createTextNode(' ' + c.label));
+          checks.appendChild(label);
+        } else {
+          var row = document.createElement('div');
+          row.className = 'ctrl';
+          var name = document.createElement('span');
+          name.textContent = c.label;
+          row.appendChild(name);
+          var val = document.createElement('span');
+          val.className = 'val';
+
+          if (c.type === 'select') {
+            input = document.createElement('select');
+            c.options.forEach(function (o) {
+              var opt = document.createElement('option');
+              opt.value = o[0];
+              opt.textContent = o[1];
+              input.appendChild(opt);
+            });
+          } else if (c.type === 'color') {
+            input = document.createElement('input');
+            input.type = 'color';
+          } else {
+            input = document.createElement('input');
+            input.type = 'range';
+            input.min = c.min; input.max = c.max; input.step = c.step;
+          }
+          input.valueEl = val;
+          row.appendChild(input);
+          row.appendChild(val);
+          host.appendChild(row);
+        }
+
+        input.addEventListener('input', function () {
+          if (c.type === 'check') spec[c.key] = input.checked;
+          else if (c.type === 'select' || c.type === 'color') spec[c.key] = input.value;
+          else spec[c.key] = Number(input.value);
+          if (input.valueEl && !c.type) input.valueEl.textContent = fmt(spec[c.key]);
+          setStatus('face-status', 'Unsaved changes', 'dirty');
+          showPreview();
+        });
+        inputs[c.key] = { input: input, type: c.type };
+      });
+
+      if (checks.children.length) host.appendChild(checks);
+    });
+  }
+
+  function fillControls() {
+    Object.keys(inputs).forEach(function (key) {
+      var ctl = inputs[key];
+      if (ctl.type === 'check') ctl.input.checked = !!spec[key];
+      else ctl.input.value = spec[key];
+      if (!ctl.type) ctl.input.valueEl.textContent = fmt(spec[key]);
+    });
+  }
+
+  function showPreview() {
+    big.setMood('custom', spec, true);
+    small.setMood('custom', spec, true);
+  }
+
+  function loadSpec(newSpec) {
+    spec = MaiFace.defaults(newSpec);
+    fillControls();
+    showPreview();
+  }
+
+  function faces() { return P.state.maiFaces || {}; }
+
+  function moodName() { return $('face-mood').value.trim().toLowerCase(); }
+
+  function renderSavedFaces() {
+    var host = $('saved-faces');
+    host.innerHTML = '';
+    Object.keys(faces()).sort().forEach(function (name) {
+      var b = document.createElement('button');
+      b.className = 'small' + (name === moodName() ? ' active' : '');
+      b.textContent = name;
+      b.title = 'Load this face';
+      b.onclick = function () {
+        $('face-mood').value = name;
+        loadSpec(faces()[name]);
+        renderSavedFaces();
+        setStatus('face-status', 'Loaded ' + name + '.');
+      };
+      host.appendChild(b);
+    });
+  }
+
+  $('face-mood').addEventListener('change', function () {
+    var name = moodName();
+    if (faces()[name]) {
+      loadSpec(faces()[name]);
+      setStatus('face-status', 'Loaded ' + name + '.');
+    }
+    renderSavedFaces();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-preset]'), function (b) {
+    b.onclick = function () {
+      loadSpec(PRESETS[b.dataset.preset]);
+      setStatus('face-status', 'Unsaved changes', 'dirty');
+    };
+  });
+
+  $('face-save').onclick = function () {
+    var name = moodName();
+    if (!name) { setStatus('face-status', 'Give the face a mood name first.', 'error'); return; }
+    var all = Object.assign({}, faces());
+    all[name] = spec;
+    post({ maiFaces: all })
+      .then(function () { setStatus('face-status', 'Saved. Mai shows this face whenever she’s ' + name + '.'); renderSavedFaces(); })
+      .catch(function (err) { setStatus('face-status', 'Could not save: ' + err.message, 'error'); });
+  };
+
+  $('face-delete').onclick = function () {
+    var name = moodName();
+    if (!faces()[name]) { setStatus('face-status', 'No saved face called ' + (name || '(blank)') + '.', 'error'); return; }
+    if (!confirm('Delete the custom face for ' + name + '? The built-in face (if any) comes back.')) return;
+    var all = Object.assign({}, faces());
+    delete all[name];
+    post({ maiFaces: all })
+      .then(function () { setStatus('face-status', 'Deleted ' + name + '.'); renderSavedFaces(); })
+      .catch(function (err) { setStatus('face-status', 'Could not save: ' + err.message, 'error'); });
+  };
+
+  function loadMoodList() {
+    fetch('/api/mai/moods').then(function (res) { return res.json(); }).then(function (data) {
+      var list = $('mood-list');
+      list.innerHTML = '';
+      (data.moods || []).forEach(function (m) {
+        var opt = document.createElement('option');
+        opt.value = m;
+        list.appendChild(opt);
+      });
+    }).catch(function () {});
+  }
+
+  buildControls();
+  loadSpec({});
+  loadMoodList();
+
+
+  /* ── LOAD ── */
+  P.load().then(function () {
+    renderSavedFaces();
+  }).catch(function () {
+    setStatus('face-status', 'Could not reach the server. Is it running?', 'error');
+  });
+
+  // warn before closing the tab with an unsaved face
+  window.addEventListener('beforeunload', function (e) {
+    if ($('face-status').classList.contains('dirty')) { e.preventDefault(); e.returnValue = ''; }
+  });
+})();
+</script>
+</body>
+</html>

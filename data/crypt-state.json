@@ -1,0 +1,128 @@
+{
+  "rotator": {
+    "showSeconds": 12,
+    "items": [
+      {
+        "kind": "quote",
+        "main": "Deep into that darkness peering, long I stood there wondering, fearing…",
+        "sub": "Edgar Allan Poe · The Raven"
+      },
+      {
+        "kind": "card",
+        "kicker": "Everything lives here",
+        "main": "example.com",
+        "sub": "links, schedule, and more"
+      },
+      {
+        "kind": "file",
+        "main": "Subject reports hearing chat messages when no one is typing.",
+        "sub": "Case File · Example",
+        "say": true
+      },
+      {
+        "kind": "card",
+        "kicker": "Stream Schedule",
+        "main": "Mon · Wed · Fri",
+        "sub": "7 PM - 11 PM"
+      },
+      {
+        "kind": "quote",
+        "main": "They mostly come at night. Mostly.",
+        "sub": "Newt · Aliens"
+      },
+      {
+        "kind": "card",
+        "kicker": "Support the Stream",
+        "main": "ko-fi.com/yourname",
+        "sub": "every bit helps"
+      }
+    ]
+  },
+  "startingSoon": {
+    "endsAt": null,
+    "message": "stream starting soon",
+    "doneText": "Starting now"
+  },
+  "intermission": {
+    "endsAt": null,
+    "message": "be right back",
+    "doneText": "Back in a moment"
+  },
+  "maiFaces": {},
+  "ending": {
+    "endsAt": null,
+    "message": "Thanks for watching!",
+    "doneText": "Stream has ended"
+  },
+  "rotatorFansly": {
+    "showSeconds": 12,
+    "items": [
+      {
+        "kind": "quote",
+        "main": "Deep into that darkness peering, long I stood there wondering, fearing…",
+        "sub": "Edgar Allan Poe · The Raven"
+      },
+      {
+        "kind": "card",
+        "kicker": "Everything lives here",
+        "main": "example.com",
+        "sub": "links, schedule, and more"
+      },
+      {
+        "kind": "file",
+        "main": "Subject reports hearing chat messages when no one is typing.",
+        "sub": "Case File · Example",
+        "say": true
+      },
+      {
+        "kind": "card",
+        "kicker": "Stream Schedule",
+        "main": "Mon · Wed · Fri",
+        "sub": "7 PM - 11 PM"
+      },
+      {
+        "kind": "quote",
+        "main": "They mostly come at night. Mostly.",
+        "sub": "Newt · Aliens"
+      },
+      {
+        "kind": "card",
+        "kicker": "Support the Stream",
+        "main": "ko-fi.com/yourname",
+        "sub": "every bit helps"
+      }
+    ]
+  },
+  "fanslyCounter": {
+    "label": "Counter",
+    "value": 0,
+    "sub": ""
+  },
+  "fanslyEnding": {
+    "endsAt": null,
+    "message": "Thanks for watching!",
+    "doneText": "Stream has ended"
+  },
+  "fanslyStartingSoon": {
+    "endsAt": null,
+    "message": "stream starting soon",
+    "doneText": "Starting now"
+  },
+  "collab": {
+    "people": [
+      {
+        "name": "Your Name",
+        "handle": "twitch.tv/yourname",
+        "fugi": "",
+        "host": true
+      },
+      {
+        "name": "Guest",
+        "handle": "twitch.tv/guest",
+        "fugi": "",
+        "host": false
+      }
+    ],
+    "guides": false
+  }
+}

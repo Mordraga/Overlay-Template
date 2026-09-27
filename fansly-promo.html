@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fansly Promo — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #2a1f2a;
+    --border2:   #3a2a3a;
+    --accent:    #8b1a1a;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--black);
+    font-family: 'Cinzel', serif;
+  }
+
+  /* ── BACKGROUND ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 0% 100%, rgba(139,26,26,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 100% 0%, rgba(201,168,76,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── SIGIL ROW ── */
+  .sigil-row {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    padding: 0 16px;
+  }
+
+  .sigil-center {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .branding-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+
+  .branding-bar-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    white-space: nowrap;
+  }
+
+  .branding-bar-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.45rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    white-space: nowrap;
+  }
+
+  .sigil-row::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .sigil-item {
+    font-size: 0.75rem;
+    color: var(--text-mute);
+    letter-spacing: 0.6em;
+    padding: 0 0.4em;
+    animation: sigilFade 4s ease-in-out infinite;
+  }
+
+  .sigil-item:nth-child(odd)  { animation-delay: 0s; }
+  .sigil-item:nth-child(even) { animation-delay: 2s; }
+
+  @keyframes sigilFade {
+    0%, 100% { opacity: 0.3; }
+    50%       { opacity: 0.7; }
+  }
+
+  /* ── MAIN AREA ── */
+  .main {
+    position: absolute;
+    top: 48px;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  /* ── CAPTURE ZONE ── */
+  .cap-zone {
+    flex: 1;
+    position: relative;
+    border: 1px solid var(--border);
+    background: transparent;
+  }
+
+  .cap-zone::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .cap-zone .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+  }
+  .cap-zone .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .cap-zone .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .cap-zone .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .cap-zone .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  /* ── FANSLY PANEL ── */
+  .fansly-panel {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    background: rgba(8,8,8,0.5);
+    position: relative;
+  }
+
+  .fansly-arch {
+    width: 100%;
+    height: 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .fansly-arch::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  }
+
+  .fansly-arch-sigil {
+    font-size: 0.5rem;
+    color: var(--accent);
+    letter-spacing: 0.4em;
+  }
+
+  .fansly-arch-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.4rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+  }
+
+  .fansly-panel .corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.6;
+    z-index: 1;
+  }
+  .fansly-panel .corner-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .fansly-panel .corner-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .fansly-panel .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .fansly-panel .corner-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .fansly-panel::before {
+    content: '';
+    position: absolute;
+    top: 48px; bottom: 0; left: -1px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .fansly-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.4rem;
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .fansly-teasers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .fansly-teaser {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: 0.03em;
+    opacity: 0;
+    animation: teaserCycle 12s ease-in-out infinite;
+  }
+  .fansly-teaser:nth-child(1) { animation-delay: 0s; }
+  .fansly-teaser:nth-child(2) { animation-delay: 4s; }
+  .fansly-teaser:nth-child(3) { animation-delay: 8s; }
+
+  @keyframes teaserCycle {
+    0%, 5%   { opacity: 0; transform: translateY(4px); }
+    10%, 28% { opacity: 1; transform: none; }
+    33%, 100% { opacity: 0; transform: translateY(-4px); }
+  }
+
+  .fansly-divider {
+    width: 140px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+  }
+
+  .fansly-handle {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.35);
+    animation: handleGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes handleGlow {
+    0%, 100% { text-shadow: 0 0 6px rgba(201,168,76,0.25); }
+    50%      { text-shadow: 0 0 16px rgba(201,168,76,0.6); }
+  }
+
+  .fansly-tag {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .fansly-footer {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+    flex-shrink: 0;
+  }
+
+  /* ── BRANDING ── */
+  .branding {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    pointer-events: none;
+  }
+
+  .branding-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(201,168,76,0.3);
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .branding-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.5rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    color: var(--text-mute);
+    opacity: 0.5;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- SIGIL ROW -->
+<div class="sigil-row">
+  <div class="branding-bar">
+    <span class="branding-bar-name">YOUR NAME</span>
+    <span class="branding-bar-sub">twitch.tv/yourname</span>
+  </div>
+  <div class="sigil-center">
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+    <span class="sigil-item">⸸</span>
+    <span class="sigil-item">✦</span>
+  </div>
+  <div class="branding-bar" style="align-items:flex-start;">
+    <span class="branding-bar-name">she / they</span>
+    <span class="branding-bar-sub">⸸ The Crypt ⸸</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- CAPTURE ZONE -->
+  <div class="cap-zone">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+  </div>
+
+  <!-- FANSLY PANEL -->
+  <div class="fansly-panel">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="fansly-arch">
+      <span class="fansly-arch-sigil">⸸ ✦ ⸸</span>
+      <span class="fansly-arch-label">Fansly</span>
+    </div>
+
+    <div class="fansly-body">
+      <div class="fansly-teasers">
+        <span class="fansly-teaser">further rites await below</span>
+        <span class="fansly-teaser">uncensored & unchained</span>
+        <span class="fansly-teaser">join the coven, if you dare</span>
+      </div>
+      <div class="fansly-divider"></div>
+      <span class="fansly-handle">fansly.com/yourname</span>
+      <span class="fansly-tag">18+ · exclusive rites</span>
+    </div>
+
+    <div class="fansly-footer"></div>
+  </div>
+
+</div>
+
+</body>
+</html>

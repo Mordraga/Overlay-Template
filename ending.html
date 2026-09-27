@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ending — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #2a1f2a;
+    --border2:   #3a2a3a;
+    --accent:    #8b1a1a;
+    --stamp:     #b02424;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent; /* the backdrop is on .bg, with windows for OBS sources (js/holes.js) */
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  /* ── BACKGROUND (same as intermission) ── */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 35% 50%, rgba(139,26,26,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(139,26,26,0.05) 0%, transparent 60%),
+      var(--black);
+  }
+
+  .bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .corner {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-color: var(--border2);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .corner-tl { top: 40px; left: 40px; border-width: 1px 0 0 1px; }
+  .corner-tr { top: 40px; right: 40px; border-width: 1px 1px 0 0; }
+  .corner-bl { bottom: 40px; left: 40px; border-width: 0 0 1px 1px; }
+  .corner-br { bottom: 40px; right: 40px; border-width: 0 1px 1px 0; }
+
+  .bar-top, .bar-bottom {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+  .bar-top    { top: 0; }
+  .bar-bottom { bottom: 0; }
+
+  /* ── LEFT: the incident report ── */
+  .left {
+    position: absolute;
+    left: 140px;
+    top: 80px; bottom: 110px; /* clear of the bottom strip */
+    width: 1000px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .file {
+    position: relative;
+    border: 1px solid var(--border);
+    background: rgba(15,13,15,0.55);
+    padding: 34px 48px 30px;
+  }
+
+  .file::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 24px; right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .file .fc {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+  }
+  .file .fc-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .file .fc-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .file .fc-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .file .fc-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .agency {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 3.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    margin: 6px 0 14px;
+    animation: goldShimmer 6s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--gold-dim) 0%, var(--gold) 20%, var(--gold-pale) 40%, var(--gold) 60%, var(--gold-dim) 80%, var(--gold) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes goldShimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 40px;
+    font-size: 18px;
+    color: var(--text);
+  }
+
+  .meta b {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-right: 10px;
+  }
+
+  .redact { color: var(--text-mute); letter-spacing: -0.05em; }
+
+  .rule {
+    height: 1px;
+    margin: 20px 0 6px;
+    background: linear-gradient(90deg, var(--border2), transparent);
+  }
+
+  .sec {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 18px 0 10px;
+  }
+
+  /* ── I. INCIDENT SUMMARY ── */
+  .recap {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .recap-line {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: baseline;
+    gap: 22px;
+    opacity: 0;
+    animation: lineIn 0.9s ease-out forwards;
+  }
+
+  @keyframes lineIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .recap-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.9rem;
+    color: var(--gold-pale);
+    text-align: right;
+    text-shadow: 0 0 18px rgba(201,168,76,0.25);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .recap-text {
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+
+  .recap-sub {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-top: 2px;
+  }
+
+  /* ── II. MAI ── */
+  .mai {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  #mai-face { width: 54px; height: 54px; flex-shrink: 0; }
+
+  .mai-text { font-size: 1.3rem; color: var(--text); }
+  .mai-text b {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #a5b4fc;
+    margin-right: 12px;
+  }
+
+  /* ── III. ADDENDUM + FILING ── */
+  .addendum {
+    font-style: italic;
+    font-size: 1.45rem;
+    color: var(--text);
+  }
+
+  .sign {
+    margin-top: 4px;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+  }
+
+  .seal {
+    position: absolute;
+    right: 48px;
+    bottom: 30px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  .seal-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .countdown {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.8rem;
+    color: var(--gold-pale);
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* timer hit zero: the file gets stamped */
+  .countdown.done {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--stamp);
+    border: 3px double var(--stamp);
+    padding: 6px 16px;
+    transform: rotate(-6deg);
+    opacity: 0.9;
+    animation: stampIn 0.35s cubic-bezier(.2,1.6,.4,1) both;
+  }
+
+  @keyframes stampIn {
+    from { transform: rotate(-6deg) scale(1.8); opacity: 0; }
+    to   { transform: rotate(-6deg) scale(1);   opacity: 0.9; }
+  }
+
+  .seal:has(.countdown.hide) { display: none; }
+  .seal:has(.countdown.done) .seal-label { display: none; }
+
+  .hide { display: none !important; }
+
+  /* ── RIGHT: model frame (transparent — the model source sits over this in OBS) ── */
+  .model-frame {
+    position: absolute;
+    left: 1260px;
+    top: 150px;
+    width: 520px;
+    height: 780px;
+    border: 1px solid var(--border);
+  }
+
+  .model-frame::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  .model-frame .fc {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--gold-dim);
+    border-style: solid;
+    opacity: 0.8;
+  }
+  .model-frame .fc-tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .model-frame .fc-tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .model-frame .fc-bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .model-frame .fc-br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .model-caption {
+    position: absolute;
+    left: 1260px;
+    top: 948px;
+    width: 520px;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+  }
+
+  .model-caption .sig { color: var(--accent); }
+
+  /* ── BOTTOM STRIP ── */
+  .bottom-strip {
+    position: absolute;
+    bottom: 60px;
+    left: 140px;
+    width: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .bottom-item {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    color: var(--text-mute);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .bottom-sep {
+    color: var(--accent);
+    font-size: 0.6rem;
+    opacity: 0.4;
+  }
+
+  /* ── FLOATING PARTICLES ── */
+  .particle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: float linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes float {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-400px) translateX(var(--drift)); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="bar-top"></div>
+<div class="bar-bottom"></div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- THE INCIDENT REPORT (tonight's recap, in F.E.T.B. file format) -->
+<div class="left">
+  <div class="file">
+    <div class="fc fc-tl"></div>
+    <div class="fc fc-tr"></div>
+    <div class="fc fc-bl"></div>
+    <div class="fc fc-br"></div>
+
+    <div class="agency">⸸ F.E.T.B. — D.A.O. · Operation: Gatekeeper ⸸</div>
+    <h1 class="title">Incident Report</h1>
+    <div class="meta">
+      <div><b>File</b>GK-0312-TL1-MRD-0 — Broadcast</div>
+      <div><b>Clearance</b>Sigma-4</div>
+      <div><b>Date of Incident</b><span id="incident-date"></span></div>
+      <div><b>Reporting Agent</b>SA <span class="redact">████████</span>, Taskforce Delta-7</div>
+    </div>
+    <div class="rule"></div>
+
+    <h2 class="sec">I. Incident Summary</h2>
+    <div class="recap" id="recap"></div>
+
+    <h2 class="sec">II. MRD-1 (Digital) — Final Observed State</h2>
+    <div class="mai">
+      <div id="mai-face"></div>
+      <div class="mai-text"><b>Mai</b><span id="mai-status">status unknown</span></div>
+    </div>
+
+    <h2 class="sec">III. Researcher Addendum</h2>
+    <p class="addendum">“<span id="message"></span>”</p>
+    <p class="sign">— Dr. A. Bad</p>
+
+    <!-- countdown from the panel; at zero it becomes the FILED stamp -->
+    <div class="seal">
+      <span class="seal-label">File seals in</span>
+      <span class="countdown hide" id="countdown"></span>
+      <span id="dots" style="display:none"></span>
+    </div>
+  </div>
+</div>
+
+<!-- MODEL AREA (transparent — put the model source over this in OBS: x 1260, y 150, 520 × 780) -->
+<div class="model-frame" data-hole>
+  <div class="fc fc-tl"></div>
+  <div class="fc fc-tr"></div>
+  <div class="fc fc-bl"></div>
+  <div class="fc fc-br"></div>
+</div>
+<div class="model-caption"><span class="sig">⸸</span> MRD-0 · Site-0312 <span class="sig">⸸</span></div>
+
+<div class="bottom-strip">
+  <span class="bottom-item">The Crypt</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">twitch.tv/yourname</span>
+  <span class="bottom-sep">⸸</span>
+  <span class="bottom-item">she / they</span>
+</div>
+
+<script src="js/countdown.js" data-key="ending"></script>
+<script src="js/mai-face.js"></script>
+
+<script>
+/* ── INCIDENT SUMMARY: tonight's tally from the server (/api/session) ── */
+(function () {
+  var POLL_MS = 5000;
+  var recap = document.getElementById('recap');
+  var lines = {};   // key -> elements, built once so updates don't replay the fade-in
+  var shown = 0;
+  var session = {};
+
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
+  function line(key, num, text, sub) {
+    var l = lines[key];
+    if (!l) {
+      var row = document.createElement('div');
+      row.className = 'recap-line';
+      row.style.animationDelay = (0.3 + shown * 0.45) + 's';
+      shown += 1;
+      row.innerHTML = '<span class="recap-num"></span><span class="recap-text"><span class="t"></span><span class="recap-sub"></span></span>';
+      recap.appendChild(row);
+      l = lines[key] = {
+        row: row,
+        num: row.querySelector('.recap-num'),
+        text: row.querySelector('.t'),
+        sub: row.querySelector('.recap-sub')
+      };
+    }
+    l.num.textContent = num;
+    l.text.textContent = text;
+    l.sub.textContent = sub || '';
+    l.sub.style.display = sub ? '' : 'none';
+  }
+
+  function drop(key) {
+    if (!lines[key]) return;
+    lines[key].row.remove();
+    delete lines[key];
+  }
+
+  function onShift() {
+    if (!session.streamStart) return null;
+    var mins = Math.max(0, Math.floor((Date.now() - Date.parse(session.streamStart)) / 60000));
+    return Math.floor(mins / 60) + ':' + (mins % 60 < 10 ? '0' : '') + (mins % 60);
+  }
+
+  function render() {
+    var s = session;
+    var any = false;
+
+    function maybe(key, n, build) {
+      if (n > 0) { build(); any = true; } else drop(key);
+    }
+
+    maybe('contact', s.firstChatters || 0, function () {
+      line('contact', s.firstChatters, plural(s.firstChatters,
+        'cryptling made first contact with the subject.',
+        'cryptlings made first contact with the subject.'));
+    });
+    maybe('familiars', s.newFollowers || 0, function () {
+      var names = (s.followerNames || []).slice().reverse();
+      line('familiars', s.newFollowers, plural(s.newFollowers, 'MRD-1 instance manifested.', 'MRD-1 instances manifested.'),
+        (names.length ? names.join(' · ') + ' · ' : '') + 'genetically: axolotl');
+    });
+    maybe('pacts', s.subs || 0, function () {
+      line('pacts', s.subs, plural(s.subs, 'binding pact sealed. Terms undisclosed.', 'binding pacts sealed. Terms undisclosed.'),
+        (s.subNames || []).join(' · '));
+    });
+    maybe('bits', s.bits || 0, function () {
+      line('bits', s.bits, 'bits offered. Subject accepted without comment.');
+    });
+    maybe('breaches', (s.raids || []).length, function () {
+      var n = s.raids.length;
+      line('breaches', n, plural(n, 'containment breach.', 'containment breaches.'),
+        s.raids.map(function (r) { return r.viewers + ' souls led by ' + r.name; }).join(' · '));
+    });
+
+    if (!any) line('quiet', '—', 'No anomalous activity recorded. Agents remain uneasy.');
+    else drop('quiet');
+
+    var shift = onShift();
+    if (shift) line('shift', shift, 'on shift. Subject did not leave the property.');
+    else drop('shift');
+
+    // keep the shift length on the bottom row
+    if (lines.shift) recap.appendChild(lines.shift.row);
+
+    var start = s.streamStart ? new Date(s.streamStart) : new Date();
+    document.getElementById('incident-date').textContent =
+      start.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  }
+
+  function load() {
+    fetch('/api/session').then(function (res) { return res.json(); }).then(function (data) {
+      session = data || {};
+      render();
+    }).catch(function () {});
+  }
+
+  // MRD-1 status line (her face comes from mai-face.js)
+  function loadMai() {
+    fetch('/api/mai').then(function (res) { return res.json(); }).then(function (mai) {
+      document.getElementById('mai-status').textContent = mai.awake
+        ? 'active. Observing. Responded to agents unprompted.'
+        : 'dormant. Terminal unresponsive.';
+    }).catch(function () {});
+  }
+
+  render();
+  load();
+  loadMai();
+  setInterval(load, POLL_MS);
+  setInterval(loadMai, POLL_MS);
+
+  // floating particles (same as intermission)
+  for (var i = 0; i < 30; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText =
+      'left:' + Math.random() * 100 + '%;' +
+      'bottom:' + Math.random() * 20 + '%;' +
+      'width:' + (Math.random() * 3 + 1) + 'px;' +
+      'height:' + (Math.random() * 3 + 1) + 'px;' +
+      '--drift:' + (Math.random() - 0.5) * 200 + 'px;' +
+      'animation-duration:' + (Math.random() * 8 + 6) + 's;' +
+      'animation-delay:' + Math.random() * 8 + 's;';
+    document.body.appendChild(p);
+  }
+})();
+</script>
+
+<!-- transparent windows for OBS sources -->
+<script src="js/holes.js"></script>
+
+</body>
+</html>

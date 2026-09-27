@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stinger — The Crypt</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<!--
+  OBS stinger transitions, rendered to transparent .webm by render.py.
+    stinger.html?style=breach   containment breach: blast doors slam shut, then tear open
+    stinger.html?style=sigil    sigil flash: iris closes on a drawn sigil + YOUR NAME
+  Opened normally it loops over fake "Scene A / Scene B" so you can see where OBS cuts.
+  &slow=4 plays it four times slower.  &render is what render.py uses (transparent, paused).
+  Timings live in STYLES below and in the ms values in the CSS; keep them in step.
+-->
+<style>
+  :root {
+    --black:     #080808;
+    --deep:      #0f0d0f;
+    --surface:   #141014;
+    --border:    #2a1f2a;
+    --border2:   #3a2a3a;
+    --accent:    #8b1a1a;
+    --alarm:     #c43a3a;
+    --gold:      #c9a84c;
+    --gold-dim:  #8a6e2e;
+    --gold-pale: #e8d49a;
+    --text:      #d4c9d4;
+    --text-dim:  #7a6d7a;
+    --text-mute: #4a3f4a;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .style { position: absolute; inset: 0; display: none; }
+  body[data-style="breach"] .breach,
+  body[data-style="sigil"]  .sigil { display: block; }
+
+  /* ════════ CONTAINMENT BREACH ════════ */
+
+  /* the doors hang 20px past every edge so the slam shake never shows a gap */
+  .doors {
+    position: absolute;
+    inset: 0;
+    animation: slam 260ms linear 650ms both;
+  }
+
+  @keyframes slam {
+    0%   { transform: translate(0, 0); }
+    15%  { transform: translate(-9px, 7px); }
+    30%  { transform: translate(8px, -5px); }
+    50%  { transform: translate(-5px, 3px); }
+    70%  { transform: translate(3px, -2px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .door {
+    position: absolute;
+    left: -20px;
+    width: 1960px;
+    overflow: hidden;
+    background: var(--black);
+  }
+  .door-top    { top: -20px; height: 561px;
+                 animation: closeTop 500ms cubic-bezier(.6,0,1,.7) 150ms both,
+                            openTop 420ms cubic-bezier(.45,0,.9,.55) 1150ms forwards; }
+  .door-bottom { top: 539px; height: 561px;
+                 animation: closeBottom 500ms cubic-bezier(.6,0,1,.7) 150ms both,
+                            openBottom 420ms cubic-bezier(.45,0,.9,.55) 1150ms forwards; }
+
+  @keyframes closeTop    { from { translate: 0 -100%; } to { translate: 0 0; } }
+  @keyframes openTop     { from { translate: 0 0; } to { translate: 0 -100%; } }
+  @keyframes closeBottom { from { translate: 0 100%; }  to { translate: 0 0; } }
+  @keyframes openBottom  { from { translate: 0 0; } to { translate: 0 100%; } }
+
+  /* both doors carry the same full-screen face; each shows its half, so the text splits with them */
+  .face {
+    position: absolute;
+    left: 20px;
+    width: 1920px;
+    height: 1080px;
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 50%, rgba(139,26,26,0.20) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, transparent 0 239px, rgba(58,42,58,0.35) 239px 240px),
+      var(--black);
+  }
+  .door-top .face    { top: 20px; }
+  .door-bottom .face { top: -539px; }
+
+  .hazard {
+    position: absolute;
+    left: 0; right: 0;
+    height: 30px;
+    background: repeating-linear-gradient(-45deg, var(--accent) 0 22px, #140909 22px 44px);
+    border-top: 1px solid var(--gold-dim);
+    border-bottom: 1px solid var(--gold-dim);
+  }
+  .hazard-a { top: 360px; }
+  .hazard-b { top: 690px; }
+
+  .msg {
+    position: absolute;
+    top: 420px;
+    left: 0; right: 0;
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: distortJitter 450ms steps(1) 660ms both;
+  }
+
+  .msg-kicker {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    letter-spacing: 0.5em;
+    color: var(--alarm);
+    text-shadow: 0 0 10px rgba(196,58,58,0.6);
+    margin-bottom: 14px;
+  }
+  .msg-main {
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 700;
+    font-size: 92px;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    color: #eadada;
+    text-shadow: 0 0 28px rgba(196,58,58,0.55), 0 0 2px rgba(196,58,58,0.9);
+  }
+  .msg-sub {
+    font-style: italic;
+    font-size: 30px;
+    color: var(--text-dim);
+    margin-top: 14px;
+    letter-spacing: 0.06em;
+  }
+
+  /* same jitter as the layout's technical distortion — red shift, no bright flashes */
+  @keyframes distortJitter {
+    0%   { transform: translate(0, 0);   filter: none; }
+    8%   { transform: translate(-4px, 1px); filter: hue-rotate(-25deg) saturate(1.8) drop-shadow(4px 0 rgba(139,26,26,0.8)); }
+    16%  { transform: translate(3px, -1px); filter: drop-shadow(-4px 0 rgba(70,140,170,0.35)); }
+    24%  { transform: translate(0, 0);   filter: none; }
+    40%  { transform: translate(5px, 0);  filter: hue-rotate(-25deg) saturate(1.8) drop-shadow(-3px 0 rgba(139,26,26,0.8)); }
+    48%  { transform: translate(-1px, 2px); filter: none; }
+    64%  { transform: translate(-3px, 0); filter: drop-shadow(3px 0 rgba(139,26,26,0.6)); }
+    72%  { transform: translate(0, 0);   filter: none; }
+    100% { transform: translate(0, 0);   filter: none; }
+  }
+
+  /* the seam glows red just before the doors tear apart */
+  .seam {
+    position: absolute;
+    left: 0; right: 0;
+    top: 538px;
+    height: 4px;
+    background: var(--alarm);
+    box-shadow: 0 0 18px 4px rgba(196,58,58,0.7);
+    opacity: 0;
+    transform: scaleX(0);
+    animation: seamCrack 250ms ease-out 950ms both, fadeOut 150ms linear 1180ms forwards;
+  }
+  @keyframes seamCrack {
+    0%   { opacity: 1; transform: scaleX(0); }
+    80%  { opacity: 1; transform: scaleX(1); }
+    100% { opacity: 0.9; transform: scaleX(1); }
+  }
+  @keyframes fadeOut { to { opacity: 0; } }
+
+  .alarm {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 220px 30px rgba(196,40,40,0.55);
+    animation: alarmIn 200ms linear 0ms both, alarmOut 350ms linear 1400ms forwards;
+  }
+  @keyframes alarmIn  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes alarmOut { from { opacity: 1; } to { opacity: 0; } }
+
+  .scan {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(139,26,26,0.10) 0 1px, transparent 1px 4px);
+    animation: scanFlicker 1500ms steps(1) 0ms both;
+  }
+  @keyframes scanFlicker {
+    0%, 12%, 30%, 70%, 88%, 100% { opacity: 0; }
+    6%, 20%, 45%, 78%            { opacity: 1; }
+  }
+
+  .slice {
+    position: absolute;
+    left: -20px;
+    width: 1960px;
+    top: var(--y);
+    height: var(--h);
+    background: var(--c);
+    opacity: 0;
+    animation: slice 150ms steps(1) var(--d) forwards;
+  }
+  @keyframes slice {
+    0%   { opacity: 1; transform: translateX(var(--dx)); }
+    50%  { opacity: 1; transform: translateX(calc(var(--dx) * -1)); }
+    100% { opacity: 0; }
+  }
+
+  /* ════════ SIGIL FLASH ════════ */
+
+  /* a hole in the dark that closes on the sigil, then opens on the new scene */
+  .iris {
+    position: absolute;
+    left: 960px;
+    top: 470px;             /* centred on the sigil, not the screen */
+    translate: -50% -50%;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2400px var(--black), inset 0 0 0 3px var(--gold-dim), inset 0 0 70px rgba(201,168,76,0.22);
+    animation: irisClose 560ms cubic-bezier(.5,0,.85,.45) 0ms both,
+               irisOpen 450ms cubic-bezier(.6,0,.9,.5) 1050ms forwards;
+  }
+  @keyframes irisClose { from { width: 2400px; height: 2400px; } to { width: 0; height: 0; } }
+  @keyframes irisOpen  { from { width: 0; height: 0; } to { width: 2400px; height: 2400px; } }
+
+  .void {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 45% 50% at 50% 45%, rgba(139,26,26,0.16) 0%, transparent 70%),
+      var(--black);
+    opacity: 0;
+    animation: fadeIn 60ms linear 520ms both, fadeOut 50ms linear 1000ms forwards;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .bloom {
+    position: absolute;
+    left: 960px;
+    top: 470px;
+    width: 900px;
+    height: 900px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,168,76,0.35) 0%, rgba(139,26,26,0.15) 40%, transparent 70%);
+    opacity: 0;
+    animation: bloom 450ms ease-out 560ms both;
+  }
+  @keyframes bloom {
+    0%   { opacity: 0; transform: scale(0.6); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.2); }
+  }
+
+  .sigil-wrap {
+    position: absolute;
+    left: 710px;
+    top: 220px;
+    width: 500px;
+    height: 500px;
+    animation: spin 1600ms linear 0ms both,
+               sigilOut 400ms cubic-bezier(.5,0,1,.6) 1050ms forwards;
+  }
+  @keyframes spin { from { rotate: -20deg; } to { rotate: 25deg; } }
+  @keyframes sigilOut { from { scale: 1; opacity: 1; } to { scale: 1.6; opacity: 0; } }
+
+  .sigil-svg {
+    width: 500px;
+    height: 500px;
+    overflow: visible;
+    filter: drop-shadow(0 0 6px rgba(201,168,76,0.45));
+    animation: glow 500ms ease-in-out 560ms both;
+  }
+  @keyframes glow {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(201,168,76,0.45)); }
+    40%      { filter: drop-shadow(0 0 18px rgba(232,212,154,0.8)) brightness(1.25); }
+  }
+
+  .draw {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 2.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ring-1 { stroke-width: 3; animation: draw 400ms ease-out 150ms both; }
+  .ring-2 { stroke: var(--gold-dim); animation: draw 400ms ease-out 250ms both; }
+  .star   { stroke: var(--accent); stroke-width: 3; animation: draw 500ms ease-in-out 300ms both; }
+  .ring-3 { animation: draw 250ms ease-out 600ms both; }
+  @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+  .ring-text {
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    fill: var(--gold-pale);
+    opacity: 0;
+    animation: fadeIn 350ms linear 400ms both;
+  }
+  .core {
+    font-size: 44px;
+    fill: var(--gold-pale);
+    text-anchor: middle;
+    dominant-baseline: central;
+    opacity: 0;
+    animation: fadeIn 200ms linear 650ms both;
+  }
+
+  .title-block {
+    position: absolute;
+    top: 760px;
+    left: 0; right: 0;
+    text-align: center;
+    opacity: 0;
+    animation: titleIn 280ms ease-out 580ms both, fadeOut 200ms linear 1050ms forwards;
+  }
+  @keyframes titleIn {
+    from { opacity: 0; letter-spacing: 0.35em; }
+    to   { opacity: 1; letter-spacing: 0.15em; }
+  }
+  .s-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 88px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: inherit;
+    background: linear-gradient(90deg, var(--gold-dim) 0%, var(--gold) 25%, var(--gold-pale) 50%, var(--gold) 75%, var(--gold-dim) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: goldShimmer 900ms linear 580ms both;
+  }
+  @keyframes goldShimmer { from { background-position: 0% center; } to { background-position: 100% center; } }
+  .s-tag {
+    margin-top: 18px;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 1em;
+  }
+
+  .ember {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: var(--gold-pale);
+    box-shadow: 0 0 8px 2px rgba(201,168,76,0.6);
+    opacity: 0;
+    animation: rise var(--t) ease-out var(--d) both;
+  }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translate(0, 0); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+  }
+
+  /* ════════ PREVIEW (not rendered) ════════ */
+  .fake {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 120px;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.35);
+  }
+  .fake-a { background: linear-gradient(135deg, #2b4a6b, #1d2f45); }
+  .fake-b { background: linear-gradient(135deg, #3d6b3a, #22401f); opacity: 0; animation: cut 1ms steps(1) var(--cover) forwards; }
+  @keyframes cut { to { opacity: 1; } }
+
+  .hud {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    padding: 12px 16px;
+    background: rgba(8,8,8,0.8);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font: 16px/1.6 system-ui, sans-serif;
+  }
+  .hud a { color: var(--gold); margin-right: 12px; }
+  .hud b { color: var(--gold-pale); }
+</style>
+</head>
+<body>
+
+<div class="fake fake-a preview-only">SCENE A</div>
+<div class="fake fake-b preview-only">SCENE B</div>
+
+<div class="style breach">
+  <div class="doors">
+    <div class="door door-top"><div class="face"></div></div>
+    <div class="door door-bottom"><div class="face"></div></div>
+  </div>
+  <div class="seam"></div>
+  <div class="alarm"></div>
+  <div class="scan"></div>
+  <div id="slices"></div>
+</div>
+
+<template id="face">
+  <div class="hazard hazard-a"></div>
+  <div class="hazard hazard-b"></div>
+  <div class="msg">
+    <div class="msg-kicker">⸸ F.E.T.B. Alert · Site-0312 ⸸</div>
+    <div class="msg-main">CONTAINMENT BREACH</div>
+    <div class="msg-sub">MRD-0 is loose — all personnel to the crypt</div>
+  </div>
+</template>
+
+<div class="style sigil">
+  <div class="iris"></div>
+  <div class="void"></div>
+  <div class="bloom"></div>
+  <div class="sigil-wrap">
+    <svg class="sigil-svg" viewBox="-250 -250 500 500" aria-hidden="true">
+      <path id="ring-path" d="M 0 -207 A 207 207 0 1 1 -0.01 -207" fill="none"/>
+      <circle class="draw ring-1" r="236" pathLength="1"/>
+      <circle class="draw ring-2" r="196" pathLength="1"/>
+      <text class="ring-text"><textPath href="#ring-path" textLength="1290" lengthAdjust="spacing">CHAOS ⸸ WITCHINESS ⸸ FERAL ⸸ THE CRYPT ⸸ CHAOS ⸸ WITCHINESS ⸸ FERAL ⸸ THE CRYPT ⸸</textPath></text>
+      <path class="draw star" id="star" pathLength="1"/>
+      <circle class="draw ring-3" r="38" pathLength="1"/>
+      <text class="core">✦</text>
+    </svg>
+  </div>
+  <div class="title-block">
+    <div class="s-title">YOUR NAME</div>
+    <div class="s-tag">⸸ ✦ ⸸</div>
+  </div>
+  <div id="embers"></div>
+</div>
+
+<div class="hud preview-only" id="hud"></div>
+
+<script>
+(function () {
+  // duration = length of the video; cover = when the screen is fully covered (OBS "transition point")
+  var STYLES = {
+    breach: { duration: 1800, cover: 700 },
+    sigil:  { duration: 1600, cover: 600 }
+  };
+
+  var params = new URLSearchParams(location.search);
+  var style = STYLES[params.get('style')] ? params.get('style') : 'breach';
+  var info = STYLES[style];
+  var rendering = params.has('render');
+  var slow = Number(params.get('slow')) || 1;
+
+  document.body.dataset.style = style;
+  document.body.style.setProperty('--cover', info.cover + 'ms');
+
+  // seeded so every render of a style comes out identical
+  var seed = 0x0312;
+  function rand() {
+    seed = (seed + 0x6D2B79F5) | 0;
+    var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  function between(a, b) { return a + rand() * (b - a); }
+
+  // ── breach: door faces + glitch slices ──
+  var face = document.getElementById('face');
+  document.querySelectorAll('.face').forEach(function (el) {
+    el.appendChild(face.content.cloneNode(true));
+  });
+
+  var COLORS = ['rgba(139,26,26,0.55)', 'rgba(8,8,8,0.85)', 'rgba(212,201,212,0.10)', 'rgba(196,58,58,0.35)'];
+  var slices = document.getElementById('slices');
+  for (var i = 0; i < 22; i++) {
+    var s = document.createElement('div');
+    s.className = 'slice';
+    // half glitch the old scene on the way in, half the new scene on the way out
+    var d = i % 2 ? between(40, 480) : between(1120, 1480);
+    s.style.cssText =
+      '--y:' + between(0, 1060).toFixed(0) + 'px;--h:' + between(3, 46).toFixed(0) + 'px;' +
+      '--dx:' + between(-60, 60).toFixed(0) + 'px;--c:' + COLORS[i % COLORS.length] + ';--d:' + d.toFixed(0) + 'ms';
+    slices.appendChild(s);
+  }
+
+  // ── sigil: seven-pointed star {7/3} + embers ──
+  var pts = [];
+  for (var k = 0; k < 7; k++) {
+    var a = -Math.PI / 2 + k * 2 * Math.PI / 7;
+    pts.push([190 * Math.cos(a), 190 * Math.sin(a)]);
+  }
+  var d = '';
+  for (var n = 0; n <= 7; n++) {
+    var p = pts[(n * 3) % 7];
+    d += (n ? ' L ' : 'M ') + p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+  }
+  document.getElementById('star').setAttribute('d', d);
+
+  var embers = document.getElementById('embers');
+  for (var e = 0; e < 26; e++) {
+    var em = document.createElement('div');
+    em.className = 'ember';
+    em.style.cssText =
+      '--x:' + between(640, 1280).toFixed(0) + 'px;--y:' + between(560, 960).toFixed(0) + 'px;' +
+      '--s:' + between(2, 5).toFixed(1) + 'px;--dx:' + between(-60, 60).toFixed(0) + 'px;' +
+      '--dy:' + between(-380, -160).toFixed(0) + 'px;--t:' + between(500, 800).toFixed(0) + 'ms;' +
+      '--d:' + between(540, 750).toFixed(0) + 'ms';
+    embers.appendChild(em);
+  }
+
+  function seek(ms) {
+    document.getAnimations().forEach(function (anim) {
+      anim.pause();
+      anim.currentTime = ms;
+    });
+    // resolve once the frame at this time has painted
+    return new Promise(function (done) {
+      requestAnimationFrame(function () { requestAnimationFrame(done); });
+    });
+  }
+
+  var ready = document.fonts.ready.then(function () {
+    return { style: style, duration: info.duration, cover: info.cover };
+  });
+
+  window.stinger = { ready: ready, seek: seek, styles: Object.keys(STYLES) };
+
+  if (rendering) {
+    document.querySelectorAll('.preview-only').forEach(function (el) { el.remove(); });
+    ready.then(function () { seek(0); });
+    return;
+  }
+
+  // ── preview: fit the window, loop, show where OBS cuts ──
+  function fit() {
+    var scale = Math.min(innerWidth / 1920, innerHeight / 1080);
+    document.documentElement.style.transformOrigin = '0 0';
+    document.documentElement.style.transform = 'scale(' + scale + ')';
+  }
+  fit();
+  addEventListener('resize', fit);
+
+  var hud = document.getElementById('hud');
+  hud.innerHTML =
+    '<div><b>' + style + '</b> · ' + info.duration + ' ms · OBS transition point <b>' + info.cover + ' ms</b>' +
+    (slow !== 1 ? ' · ' + slow + '× slower' : '') + '</div>' +
+    Object.keys(STYLES).map(function (name) {
+      return '<a href="?style=' + name + (slow !== 1 ? '&slow=' + slow : '') + '">' + name + '</a>';
+    }).join('') +
+    '<a href="?style=' + style + (slow === 1 ? '&slow=4' : '') + '">' + (slow === 1 ? 'slow-mo' : 'normal speed') + '</a>';
+
+  function replay() {
+    document.getAnimations().forEach(function (anim) {
+      anim.playbackRate = 1 / slow;
+      anim.currentTime = 0;
+      anim.play();
+    });
+  }
+  ready.then(function () {
+    replay();
+    setInterval(replay, (info.duration + 1000) * slow);
+  });
+})();
+</script>
+</body>
+</html>

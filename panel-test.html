@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">fire fake events at the main layout</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section>
+    <h2>⸸ Test Mode</h2>
+    <p class="hint" style="margin-bottom:16px">
+      Each button plays an effect on <b>layout.html</b> within a couple of seconds, so you can check it in OBS.
+      Tests are effects only: nothing gets saved, counted in the stats, or added to the ending recap.
+      Test chat messages do show in the on-screen chat, so test before going live.
+    </p>
+    <div class="test-grid">
+      <button data-test="raid"><b>Raid</b><span>containment breach · 23 souls</span></button>
+      <button data-test="follow"><b>New follower</b><span>an axolotl manifests for TestFollower</span></button>
+      <button data-test="familiar"><b>Wandering familiar</b><span>the random axolotl, no name</span></button>
+      <button data-test="firstChat"><b>First-time chatter</b><span>"a new cryptling stirs"</span></button>
+      <button data-test="god"><b>God mention</b><span>chat says Sutekh · technical distortion</span></button>
+      <button data-test="mai"><b>Mai speaks</b><span>indigo message with her mood snapshot</span></button>
+      <button data-test="numbers"><b>Numbers align</b><span>the follower goal bar flares</span></button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <span class="status" id="test-status"></span>
+    </div>
+  </section>
+
+</div>
+
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus;
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-test]'), function (b) {
+    b.onclick = function () {
+      fetch('/api/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: b.dataset.test })
+      }).then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' (restart the server if this is new)');
+        setStatus('test-status', 'Sent: ' + b.querySelector('b').textContent + '. Watch the layout.');
+      }).catch(function (err) { setStatus('test-status', 'Could not send: ' + err.message, 'error'); });
+    };
+  });
+})();
+</script>
+</body>
+</html>

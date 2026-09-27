@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timers — Crypt Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/panel.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sig">⸸ ✦ ⸸</div>
+    <h1>Crypt Control</h1>
+    <div class="subtitle">timers for every screen</div>
+  </header>
+  <nav class="panel-nav" id="panel-nav"></nav>
+
+  <section id="timer-startingSoon"><h2>⸸ Starting Soon Timer</h2></section>
+  <section id="timer-intermission"><h2>⸸ Intermission Timer</h2></section>
+  <section id="timer-ending">
+    <h2>⸸ Ending Timer</h2>
+    <p class="hint" style="margin-bottom:14px">
+      The ending screen's recap counts itself and starts fresh each stream.
+      <button class="small" id="recap-reset" style="margin-left:8px">Reset tonight's recap</button>
+      <span class="status" id="recap-status"></span>
+    </p>
+  </section>
+
+  <section id="timer-fanslyStartingSoon"><h2>⸸ Fansly Starting Soon Timer</h2></section>
+  <section id="timer-fanslyEnding"><h2>⸸ Fansly Ending Timer</h2></section>
+
+
+<template id="timer-template">
+  <div class="timer-display idle" data-el="display">No timer running</div>
+  <div class="row">
+    <input type="number" data-el="minutes" min="1" max="600" value="5">
+    <span class="hint">minutes</span>
+    <button class="primary" data-el="start">Start</button>
+    <button data-el="plus">+1 min</button>
+    <button data-el="minus">−1 min</button>
+    <button data-el="stop">Stop</button>
+  </div>
+  <div class="row">
+    <label class="field grow">Message under the timer
+      <input type="text" data-el="message">
+    </label>
+    <label class="field grow">Shown when the timer hits zero
+      <input type="text" data-el="done">
+    </label>
+  </div>
+  <div class="row">
+    <button data-el="save">Save text</button>
+    <span class="status" data-el="status"></span>
+  </div>
+</template>
+
+</div>
+
+<script src="js/panel-common.js"></script>
+
+<script>
+(function () {
+  var P = window.CryptPanel;
+  var $ = P.$, setStatus = P.setStatus, post = P.post, pad = P.pad;
+
+  /* ── TIMERS: one section per screen ── */
+  var DEFAULT_DONE = { startingSoon: 'The Crypt is opening', intermission: 'Returning to the crypt', ending: 'Filed — Sigma-4', fanslyStartingSoon: 'The rite begins', fanslyEnding: 'The rite is complete' };
+  var timers = [];
+
+  function makeTimer(key) {
+    var section = $('timer-' + key);
+    section.appendChild($('timer-template').content.cloneNode(true));
+    function el(name) { return section.querySelector('[data-el=' + name + ']'); }
+    function current() { return P.state[key] || {}; }
+
+    function save(changes, statusText) {
+      // start from what's saved now, not what this page loaded, so a stale panel can't undo edits
+      return fetch('/api/state').then(function (res) { return res.json(); }).then(function (fresh) {
+        var update = {};
+        update[key] = Object.assign({}, fresh[key] || {}, changes);
+        return post(update);
+      })
+        .then(function () { setStatus(el('status'), statusText); render(); })
+        .catch(function (err) { setStatus(el('status'), 'Could not save: ' + err.message, 'error'); });
+    }
+
+    function render() {
+      var display = el('display');
+      var endsAt = Number(current().endsAt) || 0;
+      if (!endsAt) {
+        display.textContent = 'No timer running';
+        display.classList.add('idle');
+        return;
+      }
+      display.classList.remove('idle');
+      var left = Math.ceil((endsAt - Date.now()) / 1000);
+      if (left <= 0) {
+        display.textContent = '0:00 — ' + (current().doneText || DEFAULT_DONE[key]);
+        return;
+      }
+      var h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), s = left % 60;
+      display.textContent = (h ? h + ':' + pad(m) : m) + ':' + pad(s);
+    }
+
+    function shift(ms) {
+      var endsAt = Number(current().endsAt) || 0;
+      if (!endsAt) return;
+      // if the timer already ran out, count from now
+      var base = Math.max(endsAt, ms > 0 ? Date.now() : 0);
+      save({ endsAt: base + ms }, ms > 0 ? 'Added a minute.' : 'Took off a minute.');
+    }
+
+    el('start').onclick = function () {
+      var minutes = Math.max(1, Number(el('minutes').value) || 5);
+      save({ endsAt: Date.now() + minutes * 60000 }, 'Timer started: ' + minutes + ' min.');
+    };
+    el('plus').onclick = function () { shift(60000); };
+    el('minus').onclick = function () { shift(-60000); };
+    el('stop').onclick = function () { save({ endsAt: null }, 'Timer stopped.'); };
+    el('save').onclick = function () {
+      save({ message: el('message').value, doneText: el('done').value }, 'Text saved.');
+    };
+
+    function load() {
+      el('message').value = current().message || '';
+      el('done').value = current().doneText || '';
+      render();
+    }
+
+    timers.push({ render: render, load: load });
+  }
+
+  makeTimer('startingSoon');
+  makeTimer('intermission');
+  makeTimer('ending');
+  makeTimer('fanslyStartingSoon');
+  makeTimer('fanslyEnding');
+
+  $('recap-reset').onclick = function () {
+    if (!confirm("Clear tonight's recap? The ending screen starts counting from zero.")) return;
+    fetch('/api/session/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'reset' })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      setStatus('recap-status', 'Recap cleared.');
+    }).catch(function (err) { setStatus('recap-status', 'Could not reset: ' + err.message, 'error'); });
+  };
+  setInterval(function () { timers.forEach(function (t) { t.render(); }); }, 250);
+
+
+  /* ── LOAD ── */
+  P.load().then(function () {
+    timers.forEach(function (t) { t.load(); });
+  }).catch(function () {
+    setStatus('recap-status', 'Could not reach the server. Is it running?', 'error');
+  });
+})();
+</script>
+</body>
+</html>
